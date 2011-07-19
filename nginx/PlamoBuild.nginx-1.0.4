@@ -1,13 +1,59 @@
 #!/bin/sh
 ##############################################################
-url='input sourcecode url here'
+url='http://www.nginx.org/download/nginx-1.0.4.tar.gz'
 pkgbase=nginx
 vers=1.0.4
 arch=x86_64
 # arch=i586
 build=P1
 src=nginx-1.0.4
-OPT_CONFIG=''
+OPT_CONFIG_COMMON=" \
+  --prefix=/etc/nginx \
+  --sbin-path=/usr/sbin/nginx \
+  --conf-path=/etc/nginx/nginx.conf \
+  --error-log-path=/var/log/nginx/error.log \
+  --http-log-path=/var/log/nginx/access.log \
+  --lock-path=/var/lock/nginx.lock \
+  --pid-path=/var/run/nginx.pid \
+  --http-client-body-temp-path=/var/lib/nginx/body \
+  --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+  --http-proxy-temp-path=/var/lib/nginx/proxy \
+  --with-http_gzip_static_module \
+  --with-http_ssl_module \
+  --with-ipv6"
+OPT_CONFIG_LIGHT=" \
+  --without-http_browser_module \
+  --without-http_geo_module \
+  --without-http_limit_req_module \
+  --without-http_limit_zone_module \
+  --without-http_map_module \
+  --without-http_memcached_module \
+  --without-http_referer_module \
+  --without-http_scgi_module \
+  --without-http_split_clients_module \
+  --without-http_ssi_module \
+  --without-http_userid_module \
+  --without-http_uwsgi_module"
+OPT_CONFIG_FULL=" \
+  --http-scgi-temp-path=/var/lib/nginx/scgi \
+  --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+  --with-http_addition_module \
+  --with-http_dav_module \
+  --with-http_geoip_module \
+  --with-http_gzip_static_module \
+  --with-http_image_filter_module \
+  --with-http_realip_module \
+  --with-http_stub_status_module \
+  --with-http_ssl_module \
+  --with-http_sub_module \
+  --with-http_xslt_module \
+  --with-ipv6 \
+  --with-sha1=/usr/include/openssl \
+  --with-md5=/usr/include/openssl \
+  --with-mail \
+  --with-mail_ssl_module"
+OPT_CONFIG="$OPT_CONFIG_COMMON $OPT_CONFIG_LIGHT"
+#OPT_CONFIG="$OPT_CONFIG_COMMON $OPT_CONFIG_FULL"
 DOCS='LICENSE README'
 patchfiles=''
 compress=txz
@@ -208,7 +254,7 @@ if [ $opt_config -eq 1 ] ; then
        export PKG_CONFIG_PATH=/usr/X11R7/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
        export LDFLAGS='-Wl,--as-needed' 
         CC="gcc -isystem /usr/include $target" CXX="g++ -isystem /usr/include $target " \
-          ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
+          ./configure ${OPT_CONFIG[$i]}
       if [ $? != 0 ]; then
 	  echo "configure error. $0 script stop"
 	  exit 255
@@ -248,6 +294,7 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  mkdir -p $P/var/lib/nginx
   if [ -d $P/usr/share/omf ]; then
       mkdir -p $P/install
       for omf in $P/usr/share/omf/* ; do
