@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='input sourcecode url here'
+url='http://ftp.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.6.tar.bz2'
 pkgbase=autofs
 vers=5.0.6
 arch=x86_64
 # arch=i586
 build=P1
 src=autofs-5.0.6
-OPT_CONFIG=''
+OPT_CONFIG='--with-confdir=/etc'
 DOCS='CHANGELOG COPYING INSTALL README README.active-restart README.changer README.ncpfs README.replicated-server README.smbfs README.v5.release'
-patchfiles=''
+patchfiles='heimdal.patch'
 compress=txz
 ##############################################################
 
@@ -185,6 +185,18 @@ if [ $opt_download -eq 1 ] ; then
     bz2) tar xvpjf ${i##*/} ;;
     esac
   done
+  # Patch download
+  if [ ! -r patch_order-${vers} ]; then
+    echo "Downloading patch order file"
+    wget http://ftp.kernel.org/pub/linux/daemons/autofs/v5/patch_order-${vers}
+  fi
+  for p in `cat patch_order-${vers} | egrep -v "^#"`
+  do
+    if [ ! -f $p ]; then
+      echo "=== Download $p ==="
+      wget http://ftp.kernel.org/pub/linux/daemons/autofs/v5/$p
+    fi
+  done
 fi
 if [ $opt_config -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
@@ -196,8 +208,11 @@ if [ $opt_config -eq 1 ] ; then
 ######################################################################
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
+    for patch in `cat ../patch_order-${vers} | grep -v ^#` ; do
+       patch -Np1 -i $W/$patch
+    done
     for patch in $patchfiles ; do
-       patch -p1 < $W/$patch
+      patch -p1 < ../$patch
     done
 
     if [ -f autogen.sh ] ; then
@@ -205,10 +220,10 @@ if [ $opt_config -eq 1 ] ; then
     fi
 
     if [ -x configure ] ; then
-       export PKG_CONFIG_PATH=/usr/X11R7/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
+       export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
        export LDFLAGS='-Wl,--as-needed' 
         CC="gcc -isystem /usr/include $target" CXX="g++ -isystem /usr/include $target " \
-          ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
+          ./configure --prefix=/ --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir=/usr/share/man ${OPT_CONFIG[$i]}
       if [ $? != 0 ]; then
 	  echo "configure error. $0 script stop"
 	  exit 255
@@ -248,28 +263,28 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
-  if [ -d $P/usr/share/omf ]; then
-      mkdir -p $P/install
-      for omf in $P/usr/share/omf/* ; do
-	omf_name=`basename $omf`
-	cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/scrollkeeper-update ]; then
-    scrollkeeper-update -p /var/lib/rarian -o /usr/share/omf/$omf_name
-fi
-EOF
-      done
-  fi
 
-  if [ -d $P/etc/gconf/schemas ]; then
-      mkdir -p $P/install
-      for schema in $P/etc/gconf/schemas/* ; do
-          cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/gconftool-2 ]; then
-    ( cd /etc/gconf/schemas ; GCONF_CONFIG_SOURCE=xml:merged:/etc/gconf/gconf.xml.defaults /usr/bin/gconftool-2 --makefile-install-rule `basename $schema` )
-fi
-EOF
-      done
+# 何となく無いと気持ち悪いので。。
+  mkdir -p $docdir/$src
+  cp ../patch_order-${vers} $docdir/$src
+  gzip $docdir/$src/patch_order-${vers}
+
+  configfiles="autofs autofs_ldap_auth.conf auto.master auto.misc auto.net auto.smb"
+  for f in $configfiles
+  do
+    mv $P/etc/$f $P/etc/$f.dist
+  done
+
+  mkdir -p $P/install
+  cat > $P/install/initpkg <<EOF
+configfiles="autofs autofs_ldap_auth.conf auto.master auto.misc auto.net auto.smb"
+for f in \$configfiles
+do
+  if [ ! -f /etc/\$f ]; then
+    cp /etc/\$f.dist /etc/\$f
   fi
+done
+EOF
 
 # remove locales except ja
 # 
@@ -314,6 +329,11 @@ EOF
       cp $W/$patch $docdir/$src/$patch
       gzip_one $docdir/$src/$patch
   done
+  for patch in `cat $W/patch_order-${vers} | grep -v ^#` ; do
+    cp $W/$patch $docdir/$src/$patch
+    gzip_one $docdir/$src/$patch
+  done
+ 
 ######################################################################
 # * ドキュメントツリーの調整が必要な場合はここに記述します。
 ######################################################################
