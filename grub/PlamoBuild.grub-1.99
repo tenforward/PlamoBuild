@@ -9,7 +9,7 @@ build=P1
 src=grub-1.99
 OPT_CONFIG="--disable-werror"
 DOCS='AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS TODO'
-patchfiles='grub_label.patch'
+patchfiles='grub_label.patch lazy_stat.patch'
 compress=txz
 ##############################################################
 
