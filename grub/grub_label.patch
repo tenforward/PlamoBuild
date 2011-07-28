@@ -1,0 +1,11 @@
+--- grub-1.98/util/grub.d/10_linux.in	2010-03-07 05:51:37.000000000 +0900
++++ build/util/grub.d/10_linux.in	2011-04-25 18:52:10.000000000 +0900
+@@ -30,7 +30,7 @@
+ if [ "x${GRUB_DISTRIBUTOR}" = "x" ] ; then
+   OS=GNU/Linux
+ else
+-  OS="${GRUB_DISTRIBUTOR} GNU/Linux"
++  OS="${GRUB_DISTRIBUTOR} Linux"
+   CLASS="--class $(echo ${GRUB_DISTRIBUTOR} | tr '[A-Z]' '[a-z]') ${CLASS}"
+ fi
+ 
