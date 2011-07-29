@@ -5,7 +5,7 @@ pkgbase=samba
 vers=3.5.9
 arch=x86_64
 # arch=i586
-build=P2
+build=P3
 src=samba-3.5.9
 if [ $arch = "x86_64" ]; then
     target="-m64"
@@ -259,6 +259,7 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  mkdir -p $P/var/log/samba
   mkdir -p $P/etc/pam.d
   cat <<"EOF" > $P/etc/pam.d/samba
 auth     required       pam_stack.so service=plamo-default
