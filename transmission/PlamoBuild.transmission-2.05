@@ -1,6 +1,6 @@
 #!/bin/sh
 ##############################################################
-url='input sourcecode url here'
+url='http://download.m0k.org/transmission/files/transmission-2.05.tar.bz2'
 pkgbase=transmission
 vers=2.05
 arch=x86_64
@@ -200,9 +200,9 @@ if [ $opt_config -eq 1 ] ; then
        patch -p1 < $W/$patch
     done
 
-    if [ -f autogen.sh ] ; then
-      sh ./autogen.sh
-    fi
+    #if [ -f autogen.sh ] ; then
+    #  sh ./autogen.sh
+    #fi
 
     if [ -x configure ] ; then
        export PKG_CONFIG_PATH=/usr/X11R7/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
