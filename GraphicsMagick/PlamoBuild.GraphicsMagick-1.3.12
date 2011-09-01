@@ -206,7 +206,7 @@ if [ $opt_config -eq 1 ] ; then
 
     if [ -x configure ] ; then
        export PKG_CONFIG_PATH=/usr/X11R7/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
-       export LDFLAGS='-Wl,--as-needed' 
+       export LDFLAGS="-Wl,--as-needed -L/usr/lib64"
         CC="gcc -isystem /usr/include $target" CXX="g++ -isystem /usr/include $target " \
           ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
       if [ $? != 0 ]; then
@@ -220,7 +220,7 @@ if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
     if [ -f Makefile ] ; then
-      export LDFLAGS='-Wl,--as-needed'
+      export LDFLAGS="-Wl,--as-needed -L/usr/lib64"
       make -j3
     fi
   done
