@@ -1,8 +1,8 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/6.0/source/firefox-6.0.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/6.0.1/source/firefox-6.0.1.source.tar.bz2'
 pkgbase=firefox
-vers=6.0
+vers=6.0.1
 arch=x86_64
 # arch=i586
 build=P1
@@ -259,7 +259,6 @@ if [ $opt_config -eq 1 ] ; then
        export LDFLAGS='-Wl,--as-needed' 
        export CFLAGS="-isystem /usr/include $target"
        export CXXFLAGS="-isystem /usr/include $target"
-       export FT2_CONFIG="/usr/bin/freetype-config-64"
        ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
       if [ $? != 0 ]; then
 	  echo "configure error. $0 script stop"
