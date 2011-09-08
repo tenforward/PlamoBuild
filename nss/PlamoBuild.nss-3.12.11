@@ -5,12 +5,13 @@ pkgbase=nss
 vers=3.12.11
 arch=x86_64
 # arch=i586
-build=P1
+build=P2
 src=nss-3.12.11
 OPT_CONFIG=''
 DOCS=''
 # patch='http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.12.8-standalone-1.patch'
-patchfiles='nss-3.12.8-standalone-1.patch'
+# https://bug682927.bugzilla.mozilla.org/attachment.cgi?id=556774
+patchfiles='nss-3.12.8-standalone-1.patch diginotar.patch'
 compress=txz
 ##############################################################
 
