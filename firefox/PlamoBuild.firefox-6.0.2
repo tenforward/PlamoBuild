@@ -1,15 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/6.0.1/source/firefox-6.0.1.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/6.0.2/source/firefox-6.0.2.source.tar.bz2'
 pkgbase=firefox
-vers=6.0.1
+vers=6.0.2
 arch=x86_64
 # arch=i586
-build=P1
+build=P3
 src=mozilla-release
+firefox_tag=FIREFOX_6_0_2_RELEASE
 OPT_CONFIG=" \
 	--disable-installer \
-	--disable-strip \
+	--enable-strip \
 	--disable-install-strip \
 	--disable-tests \
 	--enable-extensions=default \
@@ -244,7 +245,7 @@ if [ $opt_config -eq 1 ] ; then
       rm -rf ../l10n
     fi
 
-    hg -v clone http://hg.mozilla.org/releases/l10n/mozilla-release/ja/
+    hg -v clone -r $firefox_tag http://hg.mozilla.org/releases/l10n/mozilla-release/ja/
     if [ ! -d ../l10n ]; then
       mkdir ../l10n
     fi
@@ -255,7 +256,7 @@ if [ $opt_config -eq 1 ] ; then
     fi
 
     if [ -x configure ] ; then
-       export PKG_CONFIG_PATH=/usr/X11R7/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
+       export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
        export LDFLAGS='-Wl,--as-needed' 
        export CFLAGS="-isystem /usr/include $target"
        export CXXFLAGS="-isystem /usr/include $target"
@@ -375,6 +376,14 @@ EOF
   install2 $W/build/firefox.desktop $P/usr/share/applications/
   ln -s $P/usr/${libdir}/$pkgbase-$vers $P/usr/${libdir}/$pkgbase
   convert
+############################################################
+#   /usr/share/doc 以下には一般ユーザのIDのままのファイルが
+#   紛れこみがちなので
+############################################################
+  chk_me=`whoami | grep root`
+  if [ "$chk_me.x" != ".x" ]; then
+      chown -R root.root $P/usr/share $P/usr/include $P/usr/${libdir}
+  fi
 ######################################################################
 # * convert 対象以外で刈り取りたいシンボリックリンクがある場合はここに
 #   記述します(prune_symlink を使います)。
