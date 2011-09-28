@@ -1,0 +1,49 @@
+--- SGMLSpm/Makefile	1995-12-05 21:26:11.000000000 +0900
++++ build/Makefile	2011-09-28 18:47:59.891890244 +0900
+@@ -16,10 +16,10 @@
+ PERL = /usr/bin/perl
+ 
+ # Where do you want the sgmlspl executable script to be installed?
+-BINDIR = /usr/local/bin
++BINDIR = $(DESTDIR)/usr/bin
+ 
+ # Where do you put local perl5 libaries?
+-PERL5DIR = /usr/local/lib/perl5
++PERL5DIR = $(DESTDIR)/usr/lib64/perl5/site_perl/5.14.1
+ MODULEDIR = ${PERL5DIR}/SGMLS
+ 
+ # Where do you want to put sgmlspl specifications?
+@@ -29,7 +29,7 @@
+ # do you intend to put it?  'make html' will create two
+ # subdirectories, ${HTMLDIR}/SGMLSpm and ${HTMLDIR}/sgmlspl, and place
+ # its files there.
+-HTMLDIR = /usr/local/lib/www/docs
++HTMLDIR = $(DESTDIR)/usr/share/doc/SGMLpm-1.0.3ii
+ 
+ 
+ #
+@@ -53,6 +53,7 @@
+ dist: ${DIST}
+ 
+ ${BINDIR}/sgmlspl: sgmlspl.pl
++	mkdir -p ${BINDIR}
+ 	sed -e 's!/usr/bin/perl!${PERL}!' sgmlspl.pl > ${BINDIR}/sgmlspl
+ 	chmod a+x,a+r ${BINDIR}/sgmlspl
+ 
+@@ -62,7 +63,7 @@
+ 
+ ${MODULEDIR}:
+ 	if [ ! -d ${MODULEDIR} ]; then\
+-	  mkdir ${MODULEDIR}; \
++	  mkdir -p ${MODULEDIR}; \
+ 	  chmod a+x ${MODULEDIR}; \
+ 	fi
+ 
+@@ -80,6 +81,7 @@
+ 
+ install_html: ${HTML_SOURCES}
+ 	cd DOC; make html
++	mkdir -p ${HTMLDIR}
+ 	rm -rf ${HTMLDIR}/SGMLSpm ${HTMLDIR}/sgmlspl
+ 	cp -r ${HTML_SOURCES} ${HTMLDIR}
+ 	chmod a+x,a+r ${HTMLDIR}/SGMLSpm ${HTMLDIR}/sgmlspl
