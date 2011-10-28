@@ -5,9 +5,10 @@ pkgbase=php
 vers=5.3.8
 arch=x86_64
 # arch=i586
-build=P1
+build=P2
 src=php-5.3.8
 OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-zlib --with-curl --with-gd --enable-gd-jis-conv --enable-mbstring --enable-pdo --with-pdo-mysql=shared,/opt/mysql --with-pdo-sqlite --with-config-file-path=/etc/httpd/conf'
+#OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-config-file-path=/etc/httpd/conf'
 DOCS='INSTALL LICENSE NEWS README.EXTENSIONS README.EXT_SKEL README.MAILINGLIST_RULES README.PARAMETER_PARSING_API README.PHP4-TO-PHP5-THIN-CHANGES README.REDIST.BINS README.RELEASE_PROCESS README.SELF-CONTAINED-EXTENSIONS README.STREAMS README.SUBMITTING_PATCH README.SVN-RULES README.TESTING README.TESTING2 README.UNIX-BUILD-SYSTEM README.WIN32-BUILD-SYSTEM README.Zeus README.namespaces TODO TODO-5.1 TODO-PHP5'
 patchfiles=''
 compress=txz
@@ -91,6 +92,8 @@ compress() {
   for i in {$P,$P/usr,$P/usr/X11R7}/{sbin,bin} ; do strip_bindir $i ; done
   for i in {$P,$P/usr,$P/usr/X11R7}/lib ; do strip_libdir $i ; done
   for i in {$P,$P/usr,$P/usr/X11R7}/lib64 ; do strip_libdir $i ; done
+  for i in $P/opt/kde/lib{,64} ; do strip_libdir $i ; done
+  for i in $P/opt/kde/bin ; do strip_bindir $i ; done
   if [ -f $infodir/dir ] ; then rm -f $infodir/dir ; fi
   gzip_dir $infodir
   for i in `seq 9` n ; do gzip_dir $mandir/man$i ; done
@@ -156,9 +159,11 @@ pkg=$pkgbase-$vers-$arch-$build
 if [ $arch = "x86_64" ]; then
     target="-m64"
     libdir="lib64"
+    suffix="64"
 else
     target="-m32"
     libdir="lib"
+    suffix=""
 fi
 
 if [ $# -eq 0 ] ; then
@@ -176,7 +181,7 @@ else
 fi
 if [ $opt_download -eq 1 ] ; then
   for i in $url ; do
-    if [ ! -f ${i##*/} ] ; then wget $i ; fi
+    if [ ! -f ${i##*/} ] ; then wget -O $src.tar.bz2 $i ; fi
   done
   for i in $url ; do
     case ${i##*.} in
@@ -186,6 +191,7 @@ if [ $opt_download -eq 1 ] ; then
     esac
   done
 fi
+
 if [ $opt_config -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     if [ -d ${B[$i]} ] ; then rm -rf ${B[$i]} ; fi ; cp -a ${S[$i]} ${B[$i]}
@@ -200,20 +206,21 @@ if [ $opt_config -eq 1 ] ; then
        patch -p1 < $W/$patch
     done
 
-    if [ -f autogen.sh ] ; then
-      sh ./autogen.sh
-    fi
+    # if [ -f autogen.sh ] ; then
+    #   sh ./autogen.sh
+    # fi
 
-    if [ -x configure ] ; then
-       export PKG_CONFIG_PATH=/usr/X11R7/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
-       export LDFLAGS='-Wl,--as-needed' 
-        CC="gcc -isystem /usr/include $target" CXX="g++ -isystem /usr/include $target " \
-          ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
+      if [ -x configure ] ; then
+         export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
+         export LDFLAGS='-Wl,--as-needed' 
+         export CC="gcc -isystem /usr/include $target" 
+         export CXX="g++ -isystem /usr/include $target "
+         ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
+     fi
       if [ $? != 0 ]; then
 	  echo "configure error. $0 script stop"
 	  exit 255
       fi
-    fi
   done
 fi
 if [ $opt_build -eq 1 ] ; then
@@ -242,12 +249,40 @@ if [ $opt_package -eq 1 ] ; then
     done
     if [ -f Makefile ] ; then
       export LDFLAGS='-Wl,--as-needed'
-      make install DESTDIR=$P
+      # copy dummy httpd.conf
+      mkdir -p $P/etc/httpd/conf
+      cp /etc/httpd/conf/original/httpd.conf $P/etc/httpd/conf/
+      make install INSTALL_ROOT=$P
+      # delete unused files
+      rm -rf $P/etc/httpd/conf/httpd.conf*
+      ( cd $P ; rm -rf .channels .depdb .filemap .lock .registry .depdblock )
+      ( cd $P/usr/lib64/ ; rm -rf build )
     fi
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  # Install php.ini
+  install -m 644 ${B[$i]}/php.ini-production $P/etc/httpd/conf/php.ini.dist
+  # Install Apache Configuration File
+  mkdir -p $P/etc/httpd/conf/extra.dist/
+  cat <<EOF > $P/etc/httpd/conf/extra.dist/php5.conf
+LoadModule php5_module        ${libdir}/apache/libphp5.so
+
+<FilesMatch \.php$>
+  SetHandler application/x-httpd-php
+</FilesMatch>
+EOF
+  mkdir -p $P/install
+  cat <<EOF > $P/install/initpkg
+if [ ! -f /etc/httpd/conf/extra/php5.conf ]; then
+  ( cd /etc/httpd/conf ; cp extra.dist/php5.conf extra/php5.conf )
+fi
+if [ ! -f /etc/httpd/conf/php.ini ]; then
+  ( cd /etc/httpd/conf ; cp php.ini.dist php.ini )
+fi
+EOF
+  mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
       mkdir -p $P/install
       for omf in $P/usr/share/omf/* ; do
