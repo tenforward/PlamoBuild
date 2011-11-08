@@ -9,7 +9,7 @@ build=P3
 src=lxc-0.7.5
 OPT_CONFIG="--docdir=/usr/share/doc/$src"
 DOCS='AUTHORS COPYING ChangeLog INSTALL MAINTAINERS NEWS README TODO'
-patchfiles='cgroup-mount.patch'
+patchfiles='cgroup-mount.patch udev-ptmx-rules-sample.patch plamo-readme.patch'
 compress=txz
 ##############################################################
 
@@ -254,6 +254,9 @@ if [ $opt_package -eq 1 ] ; then
   mkdir -p $P/etc/rc.d/init.d
   cp ${B[$i]}/cgroups-mount $P/etc/rc.d/init.d
   mkdir -p $P/var/lib/lxc
+  mkdir -p $docdir/$src
+  cp ${B[$i]}/README.plamo $docdir/$src
+  cp ${B[$i]}/00-ptmx.rules $docdir/$src
   if [ -d $P/usr/share/omf ]; then
       mkdir -p $P/install
       for omf in $P/usr/share/omf/* ; do
