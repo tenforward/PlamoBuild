@@ -67,34 +67,3 @@ diff -urN lxc-0.7.5.orig//cgroups-mount lxc-0.7.5//cgroups-mount
 +
 +exit 0
 +
-diff -urN lxc-0.7.5.orig//cgroups-mount~ lxc-0.7.5//cgroups-mount~
---- lxc-0.7.5.orig//cgroups-mount~	1970-01-01 09:00:00.000000000 +0900
-+++ lxc-0.7.5//cgroups-mount~	2011-11-08 14:00:06.741708190 +0900
-@@ -0,0 +1,27 @@
-+#!/bin/sh
-+
-+start() {
-+}
-+
-+stop() {
-+}
-+
-+case "$1" in
-+start)
-+    start
-+    ;;
-+stop)
-+    stop
-+    ;;
-+restart)
-+    stop
-+    start
-+    ;;
-+*)
-+    echo $"Usage: $0 {start|stop|restart}"
-+    exit 1
-+    ;;
-+esac
-+
-+exit 0
-+
