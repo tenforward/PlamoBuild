@@ -1,13 +1,13 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/6.0.2/source/firefox-6.0.2.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/8.0/source/firefox-8.0.source.tar.bz2'
 pkgbase=firefox
-vers=6.0.2
+vers=8.0
 arch=x86_64
 # arch=i586
-build=P3
+build=P1
 src=mozilla-release
-firefox_tag=FIREFOX_6_0_2_RELEASE
+firefox_tag=FIREFOX_8_0_RELEASE
 OPT_CONFIG=" \
 	--disable-installer \
 	--enable-strip \
