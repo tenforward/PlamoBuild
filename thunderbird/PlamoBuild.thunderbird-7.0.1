@@ -1,16 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/6.0.2/source/thunderbird-6.0.2.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/7.0.1/source/thunderbird-7.0.1.source.tar.bz2'
 pkgbase=thunderbird
-vers=6.0.2
+vers=7.0.1
 arch=x86_64
 # arch=i586
 build=P1
 src=comm-release
+thunderbird_tag=THUNDERBIRD_7_0_1_RELEASE
 OPT_CONFIG=''
 DOCS='mailnews other-licenses'
 patchfiles='thunderbird.desktop.patch'
-localefiles='ja.jar ja.manifest'
 compress=txz
 ##############################################################
 
@@ -212,7 +212,7 @@ if [ $opt_config -eq 1 ] ; then
     if [ -d ../l10n ]; then
       rm -rf ../l10n
     fi
-    hg -v clone http://hg.mozilla.org/releases/l10n/mozilla-release/ja/
+    hg -v clone -r $thunderbird_tag http://hg.mozilla.org/releases/l10n/mozilla-release/ja/
     echo " done."
     if [ ! -d ../l10n ]; then
       mkdir ../l10n
@@ -249,7 +249,7 @@ ac_add_options --disable-javaxpcom
 #ac_add_options --enable-static
 ac_add_options --disable-tests
 ac_add_options --disable-updater
-ac_add_options --disable-strip
+ac_add_options --enable-strip
 ac_add_options --enable-xinerama
 ac_add_options --enable-crypto
 ac_add_options --with-l10n-base=../l10n
@@ -369,6 +369,14 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
   mv $docdir/$src $docdir/$pkgbase-$vers
   convert
+############################################################
+# /usr/share/doc 以下には一般ユーザのIDのままのファイルが
+# 紛れこみがちなので
+############################################################
+  chk_me=`whoami | grep root`
+  if [ "$chk_me.x" != ".x" ]; then
+      chown -R root.root $P/usr/share $P/usr/include $P/usr/${libdir}
+  fi
 ######################################################################
 # * convert 対象以外で刈り取りたいシンボリックリンクがある場合はここに
 #   記述します(prune_symlink を使います)。
