@@ -5,7 +5,7 @@ pkgbase=firefox
 vers=8.0
 arch=x86_64
 # arch=i586
-build=P1
+build=P2
 src=mozilla-release
 firefox_tag=FIREFOX_8_0_RELEASE
 OPT_CONFIG=" \
@@ -374,7 +374,11 @@ EOF
 ######################################################################
   mv $docdir/$src $docdir/$pkgbase-$vers
   install2 $W/build/firefox.desktop $P/usr/share/applications/
-  ln -s $P/usr/${libdir}/$pkgbase-$vers $P/usr/${libdir}/$pkgbase
+#  ln -s $P/usr/${libdir}/$pkgbase-$vers $P/usr/${libdir}/$pkgbase
+mkdir -p $P/install
+cat << EOF >> $P/install/initpkg
+ln -s /usr/${libdir}/$pkgbase-$vers /usr/${libdir}/$pkgbase
+EOF
   convert
 ############################################################
 #   /usr/share/doc 以下には一般ユーザのIDのままのファイルが
