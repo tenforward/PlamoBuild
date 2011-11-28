@@ -263,28 +263,28 @@ if [ $opt_package -eq 1 ] ; then
     ( cd $W/${texlivesrc}/inst && tar cf - bin lib include texmf ) \
         | ( cd $P/$prefix && tar xf - )
   done
-  texmf=${url_texmf##*/}
-  ( cd $W/${texmf%%.*} && tar cf - texmf-dist ) \
-      | ( cd $P/$prefix && tar xf - )
+  #texmf=${url_texmf##*/}
+  #( cd $W/${texmf%%.*} && tar cf - texmf-dist ) \
+  #    | ( cd $P/$prefix && tar xf - )
   chown -R root:root $P/*
   arch=`ls ${texlivesrc}/inst/bin/`
   echo "ARCH is $arch"
-  mkdir -p $P/install
-  cat <<EOF >> $P/install/initpkg
-SAVEPATH=\$PATH
-PATH=${prefix}/bin/${arch}:\$PATH
-TEXMFMAIN=${prefix}/texmf
-export PATH TEXMFMAIN
-
-${prefix}/bin/${arch}/mktexlsr
-${prefix}/bin/${arch}/updmap-sys
-${prefix}/bin/${arch}/mktexlsr $prefix/texmf-var
-${prefix}/bin/${arch}/fmtutil-sys --all
-sed -i -e 's|^OSFONTDIR.*$|OSFONTDIR = /usr/share/fonts|' ${prefix}/texmf/web2c/texmf.cnf
-
-PATH=\$SAVEPATH
-unset TEXMFMAIN
-EOF
+#  mkdir -p $P/install
+#  cat <<EOF >> $P/install/initpkg
+#SAVEPATH=\$PATH
+#PATH=${prefix}/bin/${arch}:\$PATH
+#TEXMFMAIN=${prefix}/texmf
+#export PATH TEXMFMAIN
+#
+#${prefix}/bin/${arch}/mktexlsr
+#${prefix}/bin/${arch}/updmap-sys
+#${prefix}/bin/${arch}/mktexlsr $prefix/texmf-var
+#${prefix}/bin/${arch}/fmtutil-sys --all
+#sed -i -e 's|^OSFONTDIR.*$|OSFONTDIR = /usr/share/fonts|' ${prefix}/texmf/web2c/texmf.cnf
+#
+#PATH=\$SAVEPATH
+#unset TEXMFMAIN
+#EOF
   mkdir -p $P/etc/profile.d
   cat <<EOF > $P/etc/profile.d/texlive.sh
 # PATH
@@ -390,6 +390,29 @@ EOF
 # mv $pkg.tar.gz $pkg.tgz
   cd $P
   /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+  mkdir -p ${P}2/install
+  cat <<EOF >> ${P}2/install/initpkg
+SAVEPATH=\$PATH
+PATH=${prefix}/bin/${arch}:\$PATH
+TEXMFMAIN=${prefix}/texmf
+export PATH TEXMFMAIN
+
+${prefix}/bin/${arch}/mktexlsr
+${prefix}/bin/${arch}/updmap-sys
+${prefix}/bin/${arch}/mktexlsr $prefix/texmf-var
+${prefix}/bin/${arch}/fmtutil-sys --all
+sed -i -e 's|^OSFONTDIR.*$|OSFONTDIR = /usr/share/fonts|' ${prefix}/texmf/web2c/texmf.cnf
+
+PATH=\$SAVEPATH
+unset TEXMFMAIN
+EOF
+
+  cd ${P}2
+  /sbin/makepkg ../zz_$pkg.$compress <<EOF
 y
 1
 EOF
