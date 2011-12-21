@@ -1,16 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://sourceforge.net/projects/pidgin/files/Pidgin/2.10.0/pidgin-2.10.0.tar.bz2'
+url='http://sourceforge.net/projects/pidgin/files/Pidgin/2.10.1/pidgin-2.10.1.tar.bz2'
 pkgbase=pidgin
-vers=2.10.0
+vers=2.10.1
 arch=x86_64
 # arch=i586
 build=P1
-src=pidgin-2.10.0
+src=pidgin-2.10.1
 OPT_CONFIG='--disable-nm --disable-vv --disable-farsight --enable-cyrus-sasl --disable-tk'
 DOCS='AUTHORS COPYING ChangeLog ChangeLog.API ChangeLog.win32 HACKING INSTALL NEWS README README.MTN README.mingw'
-# http://www.honeyplanet.jp/pidgin-2.8.0_jp.diff.gz
-patchfiles='pidgin-2.9.0_jp.diff'
+patchurl='http://www.honeyplanet.jp/pidgin-2.10.0_jp.diff.gz'
+patchfile=`basename ${patchurl##*/} .gz`
 compress=txz
 ##############################################################
 
@@ -179,9 +179,9 @@ if [ $opt_download -eq 1 ] ; then
   for i in $url ; do
     if [ ! -f ${i##*/} ] ; then wget $i ; fi
   done
-  if [ ! -f $patchfiles ]; then
-    wget http://www.honeyplanet.jp/pidgin-2.7.11_jp.diff.gz
-    gzip -d $patchfiles.gz
+  if [ ! -f $patchfile ]; then
+    wget $patchurl
+    gzip -d ${patchfile}.gz
   fi
   for i in $url ; do
     case ${i##*.} in
