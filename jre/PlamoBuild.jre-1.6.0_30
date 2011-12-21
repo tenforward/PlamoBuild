@@ -3,6 +3,7 @@
 java_vers=1.6.0_30
 build=P1
 arch=x86_64
+fallbackfont="/usr/share/fonts/TrueType/VL-PGothic-Regular.ttf"
 
 if [ "$arch" = "x86_64" ]; then
     arch="x86_64"
@@ -71,6 +72,9 @@ if [ -d "/usr/$libdir/mozilla/plugins" ]; then
   echo "linking jre plugin into /usr/$libdir/mozillax/plugins/"
   ( cd /usr/${libdir}/mozilla/plugins ; ln -sf /usr/java/jre/lib/${jarch}/libnpjp2.so libnpjp2.so )
 fi
+echo "font fallback setting"
+mkdir /usr/java/jre$java_vers/lib/fonts/fallback
+ln -sf $fallbackfont /usr/java/jre$java_vers/lib/fonts/fallback
 EOF
 
 cp ../$0 usr/share/doc/jre-$java_vers/$0
