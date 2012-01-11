@@ -1,12 +1,12 @@
 #!/bin/sh
 ##############################################################
-url='http://jp.php.net/get/php-5.3.8.tar.bz2/from/this/mirror'
+url='http://jp.php.net/get/php-5.3.9.tar.bz2/from/this/mirror'
 pkgbase=php
-vers=5.3.8
+vers=5.3.9
 arch=x86_64
 # arch=i586
-build=P2
-src=php-5.3.8
+build=P3
+src=php-5.3.9
 OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-zlib --with-curl --with-gd --enable-gd-jis-conv --enable-mbstring --enable-pdo --with-pdo-mysql=shared,/opt/mysql --with-pdo-sqlite --with-config-file-path=/etc/httpd/conf'
 #OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-config-file-path=/etc/httpd/conf'
 DOCS='INSTALL LICENSE NEWS README.EXTENSIONS README.EXT_SKEL README.MAILINGLIST_RULES README.PARAMETER_PARSING_API README.PHP4-TO-PHP5-THIN-CHANGES README.REDIST.BINS README.RELEASE_PROCESS README.SELF-CONTAINED-EXTENSIONS README.STREAMS README.SUBMITTING_PATCH README.SVN-RULES README.TESTING README.TESTING2 README.UNIX-BUILD-SYSTEM README.WIN32-BUILD-SYSTEM README.Zeus README.namespaces TODO TODO-5.1 TODO-PHP5'
@@ -18,41 +18,22 @@ install2() {
   install -d ${2%/*} ; install -m 644 $1 $2
 }
 
-strip_bindir() {
-  echo "compressing in $1"
-  if [ -d $1 ] ; then (
-    shopt -s nullglob
-    cd $1
-    for i in * ; do
-      echo "$i"
-      if [ -h $i ] ; then continue ; fi
-      if [ -n "`file $i | grep "not stripped"`" ] ; then #`
-         echo "stripping -p $i"
-         strip -p $i
+strip_all() {
+  for chk in `find . ` ; do
+    chk_elf=`file $chk | grep ELF`
+    if [ "$chk_elf.x" != ".x" ]; then
+      chk_lib=`echo $chk | grep lib`
+      if [ "$chk_lib.x" != ".x" ]; then
+         echo "stripping $chk with -g "
+         strip -g $chk
+      else
+         echo "stripping $chk"
+         strip $chk
       fi
-    done
-  ) fi
+    fi
+  done
 }
 
-strip_libdir() {
-  echo "compressing in $1"
-  if [ -d $1 ] ; then (
-    shopt -s nullglob
-    cd $1
-    for i in *.so *.so.* *.a ; do
-      echo "$i"
-      if [ -h $i ] ; then continue ; fi
-      if [ -n "`nm -a $i | grep " a "`" ] ; then #`
-        if [ $i != ${i%.a} ] ; then
-          echo -n "ranlib and "
-          touch -r $i $i.mt ; ranlib $i ; touch -r $i.mt $i ; rm $i.mt
-        fi
-        echo "stripping -gp $i"
-        strip -gp $i
-      fi
-    done
-  ) fi
-}
 
 gzip_dir() {
   echo "compressing in $1"
@@ -88,17 +69,10 @@ gzip_one() {
   gzip $1 ; mv $1.gz $C ; mv $C/${1##*/}.gz ${1%/*}
 }
 
-compress() {
-  for i in {$P,$P/usr,$P/usr/X11R7}/{sbin,bin} ; do strip_bindir $i ; done
-  for i in {$P,$P/usr,$P/usr/X11R7}/lib ; do strip_libdir $i ; done
-  for i in {$P,$P/usr,$P/usr/X11R7}/lib64 ; do strip_libdir $i ; done
-  for i in $P/opt/kde/lib{,64} ; do strip_libdir $i ; done
-  for i in $P/opt/kde/bin ; do strip_bindir $i ; done
-  if [ -f $infodir/dir ] ; then rm -f $infodir/dir ; fi
-  gzip_dir $infodir
-  for i in `seq 9` n ; do gzip_dir $mandir/man$i ; done
-  for i in `seq 9` n ; do gzip_dir $xmandir/man$i ; done
-}
+compress_all() {
+  cd $P
+  strip_all
+}  
 
 prune_symlink() {
   echo "pruning symlink in $1"
@@ -183,13 +157,7 @@ if [ $opt_download -eq 1 ] ; then
   for i in $url ; do
     if [ ! -f ${i##*/} ] ; then wget -O $src.tar.bz2 $i ; fi
   done
-  for i in $url ; do
-    case ${i##*.} in
-    tar) tar xvpf ${i##*/} ;;
-    gz) tar xvpzf ${i##*/} ;;
-    bz2) tar xvpjf ${i##*/} ;;
-    esac
-  done
+  tar xvpf  $src.tar.bz2
 fi
 
 if [ $opt_config -eq 1 ] ; then
@@ -282,29 +250,8 @@ if [ ! -f /etc/httpd/conf/php.ini ]; then
   ( cd /etc/httpd/conf ; cp php.ini.dist php.ini )
 fi
 EOF
-  mkdir -p $docdir/$src
-  if [ -d $P/usr/share/omf ]; then
-      mkdir -p $P/install
-      for omf in $P/usr/share/omf/* ; do
-	omf_name=`basename $omf`
-	cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/scrollkeeper-update ]; then
-    scrollkeeper-update -p /var/lib/rarian -o /usr/share/omf/$omf_name
-fi
-EOF
-      done
-  fi
 
-  if [ -d $P/etc/gconf/schemas ]; then
-      mkdir -p $P/install
-      for schema in $P/etc/gconf/schemas/* ; do
-          cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/gconftool-2 ]; then
-    ( cd /etc/gconf/schemas ; GCONF_CONFIG_SOURCE=xml:merged:/etc/gconf/gconf.xml.defaults /usr/bin/gconftool-2 --makefile-install-rule `basename $schema` )
-fi
-EOF
-      done
-  fi
+  mkdir -p $docdir/$src
 
 # remove locales except ja
 # 
@@ -318,15 +265,27 @@ EOF
     popd
   fi
 
-  touch $W/i.et
-  cd $W
-  find $P ! -type l -newer i.st ! -newer i.et       -exec touch -t `date '+%m%d0900'` {} \;
-  compress
+######################################################################
+# path に lib があるバイナリは strip -g, ないバイナリは strip する
+######################################################################
+  cd $P
+  compress_all
+  for mdir in `find $P/usr/share/man -name man[0-9mno] -type d`; do
+     gzip_dir mdir
+  done
+
+  if [ -d $P/usr/share/man ] ; then
+      for mdir in `find $P/usr/share/man -name "man[0-9mno]" -type d` ; do
+	  gzip_dir $mdir
+      done
+  fi
+
 ######################################################################
 # * compress 対象以外で圧縮したいディレクトリやファイルがある場合はここ
 #   に記述します(strip_{bin,lib}dir や gzip_{dir,one} を使います)。
 # * 他のアーカイブから追加したいファイルがある場合はここに記述します。
 ######################################################################
+  cd $W
   for i in `seq 0 $((${#DOCS[@]} - 1))` ; do
     for j in ${DOCS[$i]} ; do
       for k in ${S[$i]}/$j ; do
@@ -349,10 +308,14 @@ EOF
       cp $W/$patch $docdir/$src/$patch
       gzip_one $docdir/$src/$patch
   done
-######################################################################
-# * ドキュメントツリーの調整が必要な場合はここに記述します。
-######################################################################
-  convert
+############################################################
+#   /usr/share/doc 以下には一般ユーザのIDのままのファイルが
+#   紛れこみがちなので
+############################################################
+  chk_me=`whoami | grep root`
+  if [ "$chk_me.x" != ".x" ]; then
+      chown -R root.root $P/usr/share/doc
+  fi
 ######################################################################
 # * convert 対象以外で刈り取りたいシンボリックリンクがある場合はここに
 #   記述します(prune_symlink を使います)。
