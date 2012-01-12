@@ -1,7 +1,7 @@
 diff -uNr fail2ban-0.8.4/files/fail2ban-plamo build/files/fail2ban-plamo
 --- fail2ban-0.8.4/files/fail2ban-plamo	1970-01-01 09:00:00.000000000 +0900
-+++ build/files/fail2ban-plamo	2010-12-07 14:32:25.000000000 +0900
-@@ -0,0 +1,69 @@
++++ build/files/fail2ban-plamo	2012-01-12 16:20:45.918027784 +0900
+@@ -0,0 +1,67 @@
 +#!/bin/sh
 +#
 +# Copyright (c) 2008-2010, Nishant Limbachia, Hoffman Estates, IL, USA
@@ -18,11 +18,9 @@ diff -uNr fail2ban-0.8.4/files/fail2ban-plamo build/files/fail2ban-plamo
 +### changed via the config file: /etc/fail2ban/fail2ban.conf
 +
 +fail2ban_start() {
-+  if [ -x /etc/rc.d/rc.fail2ban ]; then
-+	echo "Starting fail2ban: "
-+	### using -x option to remove any stale socket file.
-+	/usr/bin/fail2ban-client -x start
-+  fi
++  echo "Starting fail2ban: "
++  ### using -x option to remove any stale socket file.
++  /usr/bin/fail2ban-client -x start
 +}
 +
 +fail2ban_stop() {
