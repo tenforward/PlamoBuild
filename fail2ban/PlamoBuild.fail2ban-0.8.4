@@ -9,7 +9,7 @@ build=P1
 src=fail2ban-0.8.4
 OPT_CONFIG=''
 DOCS='COPYING ChangeLog README TODO'
-patchfiles=''
+patchfiles='plamo-rcscript.patch'
 compress=txz
 ##############################################################
 
@@ -159,10 +159,7 @@ fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    if [ -f Makefile ] ; then
-      export LDFLAGS='-Wl,--as-needed'
-      make -j3
-    fi
+    python setup.py build
   done
 fi
 if [ $opt_package -eq 1 ] ; then
@@ -180,14 +177,45 @@ if [ $opt_package -eq 1 ] ; then
     for mk in `find . -name "[Mm]akefile" ` ; do
         sed -i -e 's|GCONFTOOL = /usr/bin/gconftool-2|GCONFTOOL = echo|' $mk
     done
-    if [ -f Makefile ] ; then
-      export LDFLAGS='-Wl,--as-needed'
-      make install DESTDIR=$P
-    fi
+    python setup.py install --root=$P
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  # Install man pages
+  mkdir -p $P/usr/share/man/man1
+  install -m 0644 man/fail2ban-client.1 man/fail2ban-regex.1 man/fail2ban-server.1 $P/usr/share/man/man1
+
+  # move config files
+  mv $P/etc/fail2ban $P/etc/fail2ban.new
+
+  # logrotate config file
+  mkdir -p $P/etc/logrotate.d
+  cat <<EOF > $P/etc/logrotate.d/fail2ban
+/var/log/fail2ban.log {
+    weekly
+    rotate 4
+    missingok
+    nocompress
+    postrotate
+        /etc/rc.d/init.d/fail2ban reload 1> /dev/null || true
+    endscript
+EOF
+
+  # rc.d/init.d script
+  mkdir -p $P/etc/rc.d/init.d
+  install -m 0644 files/fail2ban-plamo $P/etc/rc.d/init.d/fail2ban
+
+  # initpkg
+  if [ ! -d $P/install ]; then
+    mkdir -p $P/install
+  fi
+  cat <<EOF >> $P/install/initpkg
+if [ ! -d /etc/fail2ban ]; then
+  cp -a /etc/fail2ban.new /etc/fail2ban
+fi
+EOF
+
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
       mkdir -p $P/install
