@@ -7,7 +7,7 @@ arch=x86_64
 # arch=i586
 build=P1
 src=e2fsprogs-1.42
-OPT_CONFIG=''
+OPT_CONFIG='--with-root-prefix="" --enable-elf-shlibs --disable-libblkid --disable-libuuid --disable-uuidd --disable-fsck'
 DOCS='.release-checklist ABOUT-NLS COPYING INSTALL INSTALL.elfbin README RELEASE-NOTES e2fsprogs.lsm install-utils'
 patchfiles=''
 compress=txz
@@ -143,11 +143,19 @@ if [ $opt_config -eq 1 ] ; then
     #   sh ./autogen.sh
     # fi
 
+    if [ $arch = 'x86_64' ]; then
+      sed -i '/root_libdir=/s@$libdir@/lib64@g' configure
+    else
+      sed -i '/root_libdir=/s@$libdir@/lib@g' configure
+    fi
+    sed -i 's@,dir_index@@g' misc/mke2fs.conf
+
       if [ -x configure ] ; then
          export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
-         export LDFLAGS='-Wl,--as-needed' 
-         export CC="gcc -isystem /usr/include $target" 
-         export CXX="g++ -isystem /usr/include $target "
+         export LDFLAGS="-Wl,--as-needed"
+         export CFLAGS="-isystem /usr/include $target" 
+         export CPPFLAGS="-isystem /usr/include $target "
+         export PKG_CONFIG="/bin/true"
          ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
      fi
       if [ $? != 0 ]; then
@@ -161,7 +169,7 @@ if [ $opt_build -eq 1 ] ; then
     cd ${B[$i]}
     if [ -f Makefile ] ; then
       export LDFLAGS='-Wl,--as-needed'
-      make -j3
+      make V=1 LIBUUID='-luuid' LIBBLKID='-lblkid'
     fi
   done
 fi
@@ -182,7 +190,7 @@ if [ $opt_package -eq 1 ] ; then
     done
     if [ -f Makefile ] ; then
       export LDFLAGS='-Wl,--as-needed'
-      make install DESTDIR=$P
+      make V=1 LIBUUID='-luuid' LIBBLKID='-lblkid' DESTDIR=$P install
     fi
   done
 ######################################################################
