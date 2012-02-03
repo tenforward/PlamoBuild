@@ -1,13 +1,13 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/7.0.1/source/thunderbird-7.0.1.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/10.0-real/source/thunderbird-10.0.source.tar.bz2'
 pkgbase=thunderbird
-vers=7.0.1
+vers=10.0
 arch=x86_64
 # arch=i586
 build=P1
 src=comm-release
-thunderbird_tag=THUNDERBIRD_7_0_1_RELEASE
+thunderbird_tag=THUNDERBIRD_10_0_RELEASE
 OPT_CONFIG=''
 DOCS='mailnews other-licenses'
 patchfiles='thunderbird.desktop.patch'
