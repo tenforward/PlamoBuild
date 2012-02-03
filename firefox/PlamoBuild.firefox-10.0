@@ -1,13 +1,13 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/8.0/source/firefox-8.0.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/10.0/source/firefox-10.0.source.tar.bz2'
 pkgbase=firefox
-vers=8.0
+vers=10.0
 arch=x86_64
 # arch=i586
-build=P2
+build=P1
 src=mozilla-release
-firefox_tag=FIREFOX_8_0_RELEASE
+firefox_tag=FIREFOX_10_0_RELEASE
 OPT_CONFIG=" \
 	--disable-installer \
 	--enable-strip \
@@ -25,6 +25,7 @@ OPT_CONFIG=" \
 	--enable-system-sqlite \
 	--enable-system-cairo \
 	--enable-svg \
+	--enable-webm \
 	--enable-system-lcms \
 	--with-system-jpeg \
 	--with-system-nspr \
@@ -377,7 +378,7 @@ EOF
 #  ln -s $P/usr/${libdir}/$pkgbase-$vers $P/usr/${libdir}/$pkgbase
 mkdir -p $P/install
 cat << EOF >> $P/install/initpkg
-ln -s /usr/${libdir}/$pkgbase-$vers /usr/${libdir}/$pkgbase
+ln -sf /usr/${libdir}/$pkgbase-$vers /usr/${libdir}/$pkgbase
 EOF
   convert
 ############################################################
