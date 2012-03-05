@@ -1,15 +1,14 @@
 #!/bin/sh
 ##############################################################
-url='http://jp.php.net/get/php-5.3.9.tar.bz2/from/this/mirror'
+url='http://jp.php.net/get/php-5.4.0.tar.bz2/from/this/mirror'
 pkgbase=php
-vers=5.3.9
+vers=5.4.0
 arch=x86_64
 # arch=i586
-build=P3
-src=php-5.3.9
+build=P1
+src=php-5.4.0
 OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-zlib --with-curl --with-gd --enable-gd-jis-conv --enable-mbstring --enable-pdo --with-pdo-mysql=shared,/opt/mysql --with-pdo-sqlite --with-config-file-path=/etc/httpd/conf'
-#OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-config-file-path=/etc/httpd/conf'
-DOCS='INSTALL LICENSE NEWS README.EXTENSIONS README.EXT_SKEL README.MAILINGLIST_RULES README.PARAMETER_PARSING_API README.PHP4-TO-PHP5-THIN-CHANGES README.REDIST.BINS README.RELEASE_PROCESS README.SELF-CONTAINED-EXTENSIONS README.STREAMS README.SUBMITTING_PATCH README.SVN-RULES README.TESTING README.TESTING2 README.UNIX-BUILD-SYSTEM README.WIN32-BUILD-SYSTEM README.Zeus README.namespaces TODO TODO-5.1 TODO-PHP5'
+DOCS='INSTALL LICENSE NEWS README.EXTENSIONS README.EXT_SKEL README.MAILINGLIST_RULES README.NEW-OUTPUT-API README.PARAMETER_PARSING_API README.PHP4-TO-PHP5-THIN-CHANGES README.REDIST.BINS README.RELEASE_PROCESS README.SELF-CONTAINED-EXTENSIONS README.STREAMS README.SUBMITTING_PATCH README.SVN-RULES README.TESTING README.TESTING2 README.UNIX-BUILD-SYSTEM README.WIN32-BUILD-SYSTEM README.Zeus README.namespaces'
 patchfiles=''
 compress=txz
 ##############################################################
