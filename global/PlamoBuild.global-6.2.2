@@ -1,12 +1,12 @@
 #!/bin/sh
 ##############################################################
-url='http://ftp.riken.jp/GNU/gnu/global/global-5.9.4.tar.gz'
+url='ftp://ftp.gnu.org/pub/gnu/global/global-6.2.2.tar.gz'
 pkgbase=global
-vers=5.9.4
+vers=6.2.2
 arch=x86_64
 # arch=i586
 build=P1
-src=global-5.9.4
+src=global-6.2.2
 OPT_CONFIG=''
 DOCS='AUTHORS COPYING COPYING.LIB ChangeLog INSTALL LICENSE NEWS README THANKS'
 patchfiles=''
@@ -193,6 +193,18 @@ if [ $opt_package -eq 1 ] ; then
 if [ -d /usr/share/emacs/site-lisp ]; then
   cp /usr/share/gtags/gtags.el /usr/share/emacs/site-lisp
 fi
+EOF
+
+  mkdir -p $P/etc/template/Source/.emacs.d/site-start.d
+  cat <<EOF >> $P/etc/template/Source/.emacs.d/site-start.d/gtags.el
+(require 'gtags)
+
+;; パスの表示モードを相対パスに
+(setq gtags-path-style 'relative)
+
+;; タグジャンプ先を読み込み専用に
+;(setq view-read-only t)
+;(setq gtags-read-only t)
 EOF
 
   mkdir -p $docdir/$src
