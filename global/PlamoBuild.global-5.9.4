@@ -188,6 +188,13 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  mkdir -p $P/install
+  cat <<EOF >> $P/install/initpkg
+if [ -d /usr/share/emacs/site-lisp ]; then
+  cp /usr/share/gtags/gtags.el /usr/share/emacs/site-lisp
+fi
+EOF
+
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
       mkdir -p $P/install
