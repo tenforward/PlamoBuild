@@ -184,13 +184,13 @@ myname=`basename $0`
 pkg=$pkgbase-$vers-$arch-$build
 
 if [ $arch = "x86_64" ]; then
-    target="-m64"
-    libdir="lib64"
-    suffix="64"
+  target="-m64"
+  libdir="lib64"
+  suffix="64"
 else
-    target="-m32"
-    libdir="lib"
-    suffix=""
+  target="-m32"
+  libdir="lib"
+  suffix=""
 fi
 
 if [ $# -eq 0 ] ; then
@@ -242,13 +242,13 @@ if [ $opt_config -eq 1 ] ; then
     #   sh ./autogen.sh
     # fi
 
-      if [ -x configure ] ; then
-         export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
-         export LDFLAGS='-Wl,--as-needed' 
-         export CC="gcc -isystem /usr/include $target" 
-         export CXX="g++ -isystem /usr/include $target "
-         ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
-     fi'''
+    if [ -x configure ] ; then
+      export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
+      export LDFLAGS='-Wl,--as-needed' 
+      export CC="gcc -isystem /usr/include $target" 
+      export CXX="g++ -isystem /usr/include $target "
+      ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
+    fi'''
     elif type == "KDE":
         config = '''
 if [ $opt_config -eq 1 ] ; then
@@ -262,29 +262,29 @@ if [ $opt_config -eq 1 ] ; then
   for i in `seq 0 $((${#S[@]} - 1))` ; do
     cd $S
     for patch in $patchfiles ; do
-       if [ ! -f ".$patch" ]; then
-           patch -p1 < $W/$patch
-           touch ".$patch"
-       fi
+      if [ ! -f ".$patch" ]; then
+        patch -p1 < $W/$patch
+        touch ".$patch"
+      fi
     done
 
-   cd $B
-      if [ -f $S/CMakeLists.txt ]; then
-          export PKG_CONFIG_PATH=/opt/kde/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
-          export LDFLAGS='-Wl,--as-needed' 
-          export CC="gcc -isystem /usr/include $target" 
-          export CXX="g++ -isystem /usr/include $target"
-          cmake -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde -DLIB_INSTALL_DIR:PATH=/opt/kde/${libdir} -DLIB_SUFFIX=$suffix ${OPT_CONFIG} $S
-      fi'''
+    cd $B
+    if [ -f $S/CMakeLists.txt ]; then
+      export PKG_CONFIG_PATH=/opt/kde/${libdir}/pkgconfig:/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
+      export LDFLAGS='-Wl,--as-needed' 
+      export CC="gcc -isystem /usr/include $target" 
+      export CXX="g++ -isystem /usr/include $target"
+      cmake -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde -DLIB_INSTALL_DIR:PATH=/opt/kde/${libdir} -DLIB_SUFFIX=$suffix ${OPT_CONFIG} $S
+    fi'''
 
     return config
 
 def make_body2():
     body='''
-      if [ $? != 0 ]; then
-	  echo "configure error. $0 script stop"
-	  exit 255
-      fi
+    if [ $? != 0 ]; then
+      echo "configure error. $0 script stop"
+      exit 255
+    fi
   done
 fi
 if [ $opt_build -eq 1 ] ; then
@@ -321,39 +321,39 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
-      mkdir -p $P/install
-      for omf in $P/usr/share/omf/* ; do
-	omf_name=`basename $omf`
-	cat << EOF >> $P/install/initpkg
+    mkdir -p $P/install
+    for omf in $P/usr/share/omf/* ; do
+      omf_name=`basename $omf`
+      cat << EOF >> $P/install/initpkg
 if [ -x /usr/bin/scrollkeeper-update ]; then
-    scrollkeeper-update -p /var/lib/rarian -o /usr/share/omf/$omf_name
+  scrollkeeper-update -p /var/lib/rarian -o /usr/share/omf/$omf_name
 fi
 EOF
-      done
+    done
   fi
 
   if [ -d $P/etc/gconf/schemas ]; then
-      mkdir -p $P/install
-      for schema in $P/etc/gconf/schemas/* ; do
-          cat << EOF >> $P/install/initpkg
+    mkdir -p $P/install
+    for schema in $P/etc/gconf/schemas/* ; do
+      cat << EOF >> $P/install/initpkg
 if [ -x /usr/bin/gconftool-2 ]; then
     ( cd /etc/gconf/schemas ; GCONF_CONFIG_SOURCE=xml:merged:/etc/gconf/gconf.xml.defaults /usr/bin/gconftool-2 --makefile-install-rule `basename $schema` )
 fi
 EOF
-      done
+    done
   fi
 
 # remove locales except ja
 # 
   for loc_dir in `find $P -name locale` ; do
-      pushd $loc_dir
-      for loc in * ; do
-          if [ "$loc" != "ja" ]; then
-              rm -rf $loc
-          fi
-      done
-      popd
-   done      
+    pushd $loc_dir
+    for loc in * ; do
+      if [ "$loc" != "ja" ]; then
+        rm -rf $loc
+      fi
+    done
+    popd
+  done      
 
 ######################################################################
 # path に lib があるバイナリは strip -g, ないバイナリは strip する
@@ -361,9 +361,9 @@ EOF
   cd $P
   compress_all
   if [ -d $P/usr/share/man ]; then
-      for mdir in `find $P/usr/share/man -name man[0-9mno] -type d`; do
-          gzip_dir $mdir
-      done
+    for mdir in `find $P/usr/share/man -name man[0-9mno] -type d`; do
+      gzip_dir $mdir
+    done
   fi
 ######################################################################
 # * compress 対象以外で圧縮したいディレクトリやファイルがある場合はここ
@@ -389,8 +389,8 @@ EOF
   done
 
   for patch in $patchfiles ; do
-      cp $W/$patch $docdir/$src/$patch
-      gzip_one $docdir/$src/$patch
+    cp $W/$patch $docdir/$src/$patch
+    gzip_one $docdir/$src/$patch
   done
 
 ############################################################
