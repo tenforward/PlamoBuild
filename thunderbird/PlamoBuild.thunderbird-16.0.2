@@ -1,15 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/10.0-real/source/thunderbird-10.0.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/thunderbird/releases/16.0.2/source/thunderbird-16.0.2.source.tar.bz2'
+verify=$url.asc
 pkgbase=thunderbird
-vers=10.0
+vers=16.0.2
 arch=x86_64
 # arch=i586
 build=P1
 src=comm-release
-thunderbird_tag=THUNDERBIRD_10_0_RELEASE
+thunderbird_tag=THUNDERBIRD_16_0_2_RELEASE
 OPT_CONFIG=''
-DOCS='mailnews other-licenses'
+DOCS='mail/README.html'
 patchfiles='thunderbird.desktop.patch'
 compress=txz
 ##############################################################
@@ -177,7 +178,21 @@ else
 fi
 if [ $opt_download -eq 1 ] ; then
   for i in $url ; do
-    if [ ! -f ${i##*/} ] ; then wget $i ; fi
+    if [ ! -f ${i##*/} ] ; then
+      wget $i
+      wget $verify
+    fi
+  done
+  for i in $verify ; do
+    case ${i##*.} in
+    asc) gpg2 --verify ${i##*/} ;;
+    esac
+    if [ $? -ne 0 ]; then
+      echo "archive verify was failed."
+      exit 1
+    else
+      echo "archive verify was successed."
+    fi
   done
   for i in $url ; do
     case ${i##*.} in
@@ -226,37 +241,45 @@ if [ $opt_build -eq 1 ] ; then
     cd ${B[$i]}
 cat > mozconfig << EOF
 # Specify that Thunderbird should be built.
+mk_add_options MOZ_MAKE_FLAGS="-j3"
 ac_add_options --enable-application=mail
 ac_add_options --enable-calendar
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../thunderbird-build
-ac_add_options --prefix=/usr
-ac_add_options --libdir=/usr/${libdir}
-ac_add_options --enable-optimize
-ac_add_options --enable-system-sqlite
-ac_add_options --enable-system-cairo
+ac_add_options --disable-installer
+ac_add_options --enable-strip
+ac_add_options --disable-install-strip
+ac_add_options --disable-tests
+ac_add_options --enable-extensions=default
+ac_add_options --enable-single-profile
+ac_add_options --disable-profilesharing
+ac_add_options --disable-updater
+ac_add_options --disable-elf-dynstr-gc
+ac_add_options --disable-necko-wifi
+ac_add_options --disable-crashreporter
+ac_add_options --enable-chrome-format=jar
+ac_add_options --enable-svg
+ac_add_options --enable-webm
 ac_add_options --enable-system-lcms
+ac_add_options --enable-system-sqlite
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
-ac_add_options --with-system-png
 ac_add_options --with-system-zlib
-ac_add_options --disable-dbus
-ac_add_options --disable-gnomevfs
-ac_add_options --disable-necko-wifi
-ac_add_options --disable-libnotify
-ac_add_options --disable-installer
-ac_add_options --disable-javaxpcom
-#ac_add_options --enable-static
-ac_add_options --disable-tests
-ac_add_options --disable-updater
-ac_add_options --enable-strip
-ac_add_options --enable-xinerama
-ac_add_options --enable-crypto
-ac_add_options --with-l10n-base=../l10n
+ac_add_options --with-system-bz2
+ac_add_options --with-system-libevent
+#ac_add_options --with-system-hunspell
+ac_add_options --with-pthreads
+ac_add_options --enable-system-ffi
+ac_add_options --disable-static 
+ac_add_options --enable-shared 
+ac_add_options --enable-safe-browsing
 ac_add_options --enable-ui-locale=ja
-ac_add_options --disable-official-branding
+ac_add_options --disable-gnomevfs
+ac_add_options --disable-gnomeui
+ac_add_options --with-l10n-base=../../l10n
+ac_add_options --prefix=/usr
+ac_add_options --libdir=/usr/${libdir}
+ac_add_options --localstatedir=/var
 ac_add_options --with-branding=mail/branding/aurora
-ac_add_options --disable-crashreporter
 
 export CC="${GCC} -isystem /usr/include $target"
 export CXX="${GPP} -isystem /usr/include $target"
