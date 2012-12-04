@@ -1,13 +1,13 @@
 #!/bin/sh
 ##############################################################
-url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/16.0.2/source/firefox-16.0.2.source.tar.bz2'
+url='http://releases.mozilla.org/pub/mozilla.org/firefox/releases/17.0/source/firefox-17.0.source.tar.bz2'
 pkgbase=firefox
-vers=16.0.2
+vers=17.0
 arch=x86_64
 # arch=i586
 build=P1
 src=mozilla-release
-firefox_tag=FIREFOX_16_0_2_RELEASE
+firefox_tag=FIREFOX_17_0_RELEASE
 # after firefox 12.0, to use system cairo is broken.
 #	--enable-system-cairo \
 # after firefox 13.0, libpng 1.5 is required.
