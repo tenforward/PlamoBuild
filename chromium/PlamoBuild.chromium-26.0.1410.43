@@ -1,14 +1,13 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-25.0.1364.172.tar.bz2'
-nacl='http://gsdview.appspot.com/nativeclient-archive2/toolchain/latest/naclsdk_linux_x86.tgz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-26.0.1410.43.tar.xz'
 verify=
 pkgbase=chromium
-vers=25.0.1364.172
+vers=26.0.1410.43
 arch=x86_64
 # arch=i586
 build=P1
-src=chromium-25.0.1364.172
+src=chromium-26.0.1410.43
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
 patchfiles='chromium-20.0.1132.57-glib-2.16-use-siginfo_t.patch chromium-25.0.1364.152-fix-crash-when-cups-is-down.patch'
@@ -143,7 +142,6 @@ if [ $opt_download -eq 1 ] ; then
       wget $i
     fi
   done
-  wget $nacl
   for i in $verify ; do
     case ${i##*.} in
     asc) gpg2 --verify ${i##*/} ;;
