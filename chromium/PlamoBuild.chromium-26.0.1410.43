@@ -10,7 +10,7 @@ build=P1
 src=chromium-26.0.1410.43
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='chromium-20.0.1132.57-glib-2.16-use-siginfo_t.patch chromium-25.0.1364.152-fix-crash-when-cups-is-down.patch'
+patchfiles='chromium-20.0.1132.57-glib-2.16-use-siginfo_t.patch chromium-25.0.1364.152-fix-crash-when-cups-is-down.patch chromium-26.0.1410.43-speechd-0.8.patch'
 compress=txz
 ##############################################################
 
@@ -192,6 +192,7 @@ if [ $opt_config -eq 1 ] ; then
         -Dtarget_arch=$TARGETARCH \
         -Dwerror= \
         -Dlinux_link_gnome_keyring=0 \
+	-Dlinux_link_libspeechd=1 \
         -Dlinux_sandbox_path=/usr/${libdir}/chromium/chrome_sandbox \
         -Dlinux_strip_binary=1 \
         -Dlinux_use_gold_binary=0 \
@@ -228,7 +229,7 @@ if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
     #export -n CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS"
-    make -j3 chrome chrome_sandbox BUILDTYPE=Release V=1
+    make -j2 chrome chrome_sandbox BUILDTYPE=Release V=1
   done
 fi
 if [ $opt_package -eq 1 ] ; then
