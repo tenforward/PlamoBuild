@@ -280,8 +280,8 @@ if [ $opt_config -eq 1 ] ; then
     if [ -x configure ] ; then
       export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
       export LDFLAGS='-Wl,--as-needed' 
-      export CC="gcc -isystem /usr/include $target" 
-      export CXX="g++ -isystem /usr/include $target "
+      export CFLAGS="-isystem /usr/include $target" 
+      export CPPFLAGS="-isystem /usr/include $target "
       ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
     fi'''
     elif type == "KDE":
