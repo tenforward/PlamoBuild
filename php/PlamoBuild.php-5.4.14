@@ -1,14 +1,22 @@
 #!/bin/sh
 ##############################################################
-url='http://jp.php.net/get/php-5.4.0.tar.bz2/from/this/mirror'
+url='http://jp.php.net/get/php-5.4.14.tar.bz2/from/this/mirror'
 pkgbase=php
-vers=5.4.0
+vers=5.4.14
 arch=x86_64
 # arch=i586
 build=P1
-src=php-5.4.0
-OPT_CONFIG='--with-apxs2=/usr/sbin/apxs --with-zlib --with-curl --with-gd --enable-gd-jis-conv --enable-mbstring --enable-pdo --with-pdo-mysql=shared,/opt/mysql --with-pdo-sqlite --with-config-file-path=/etc/httpd/conf'
-DOCS='INSTALL LICENSE NEWS README.EXTENSIONS README.EXT_SKEL README.MAILINGLIST_RULES README.NEW-OUTPUT-API README.PARAMETER_PARSING_API README.PHP4-TO-PHP5-THIN-CHANGES README.REDIST.BINS README.RELEASE_PROCESS README.SELF-CONTAINED-EXTENSIONS README.STREAMS README.SUBMITTING_PATCH README.SVN-RULES README.TESTING README.TESTING2 README.UNIX-BUILD-SYSTEM README.WIN32-BUILD-SYSTEM README.Zeus README.namespaces'
+src=php-5.4.14
+# for 2.2
+#CONFDIR="/etc/httpd/conf/"
+#OPT_CONFIG="--with-apxs2=/usr/sbin/apxs --with-zlib --with-curl --with-gd --enable-gd-jis-conv --with-freetype-dir=/usr --with-jpeg-dir=/usr --enable-mbstring --enable-pdo --with-pdo-mysql=shared,/opt/mysql --with-pdo-sqlite --with-config-file-path=$CONFDIR --enable-zip=shared --enable-ftp=shared --with-bz2=shared --with-db4=shared,/usr --with-gdbm=shared --enable-exif=shared --with-ldap=shared "
+# for 2.4
+CONFDIR="/etc/httpd/"
+OPT_CONFIG="--with-apxs2=/usr/bin/apxs --with-zlib --with-curl --with-gd --enable-gd-jis-conv --with-freetype-dir=/usr --with-jpeg-dir=/usr --enable-mbstring --enable-pdo --with-pdo-mysql=shared,/opt/mysql --with-pdo-sqlite --with-config-file-path=$CONFDIR --enable-zip=shared --enable-ftp=shared --with-bz2=shared --with-db4=shared,/usr --with-gdbm=shared --enable-exif=shared --with-ldap=shared"
+if [ $arch == 'x86_64' ]; then
+  OPT_CONFIG="$OPT_CONFIG --with-libdir=lib64"
+fi
+DOCS='INSTALL LICENSE NEWS README.EXTENSIONS README.EXT_SKEL README.GIT-RULES README.MAILINGLIST_RULES README.NEW-OUTPUT-API README.PARAMETER_PARSING_API README.PHP4-TO-PHP5-THIN-CHANGES README.REDIST.BINS README.RELEASE_PROCESS README.SELF-CONTAINED-EXTENSIONS README.STREAMS README.SUBMITTING_PATCH README.TESTING README.TESTING2 README.UNIX-BUILD-SYSTEM README.WIN32-BUILD-SYSTEM README.namespaces'
 patchfiles=''
 compress=txz
 ##############################################################
@@ -217,24 +225,28 @@ if [ $opt_package -eq 1 ] ; then
     if [ -f Makefile ] ; then
       export LDFLAGS='-Wl,--as-needed'
       # copy dummy httpd.conf
-      mkdir -p $P/etc/httpd/conf
-      cp /etc/httpd/conf/original/httpd.conf $P/etc/httpd/conf/
+      mkdir -p $P/$CONFDIR
+      cp $CONFDIR/original/httpd.conf $P/$CONFDIR
       make install INSTALL_ROOT=$P
       # delete unused files
-      rm -rf $P/etc/httpd/conf/httpd.conf*
+      rm -rf $P/$CONFDIR/httpd.conf*
       ( cd $P ; rm -rf .channels .depdb .filemap .lock .registry .depdblock )
-      ( cd $P/usr/lib64/ ; rm -rf build )
+      # /usr/${libdir}/build 以下を使用するソフトがある模様．
+      #( cd $P/usr/lib64/ ; rm -rf build )
     fi
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
   # Install php.ini
-  install -m 644 ${B[$i]}/php.ini-production $P/etc/httpd/conf/php.ini.dist
+  install -m 644 ${B[$i]}/php.ini-production $P/$CONFDIR/php.ini.dist
   # Install Apache Configuration File
-  mkdir -p $P/etc/httpd/conf/extra.dist/
-  cat <<EOF > $P/etc/httpd/conf/extra.dist/php5.conf
-LoadModule php5_module        ${libdir}/apache/libphp5.so
+  mkdir -p $P/$CONFDIR/extra.dist/
+  cat <<EOF > $P/$CONFDIR/extra.dist/php5.conf
+# 2.2
+LoadModule php5_module        ${libdir}/apache/modules/libphp5.so
+# 2.4
+#LoadModule php5_module        ${libdir}/httpd/modules/libphp5.so
 
 <FilesMatch \.php$>
   SetHandler application/x-httpd-php
@@ -242,11 +254,11 @@ LoadModule php5_module        ${libdir}/apache/libphp5.so
 EOF
   mkdir -p $P/install
   cat <<EOF > $P/install/initpkg
-if [ ! -f /etc/httpd/conf/extra/php5.conf ]; then
-  ( cd /etc/httpd/conf ; cp extra.dist/php5.conf extra/php5.conf )
+if [ ! -f $CONFDIR/extra/php5.conf ]; then
+  ( cd $CONFDIR ; cp extra.dist/php5.conf extra/php5.conf )
 fi
-if [ ! -f /etc/httpd/conf/php.ini ]; then
-  ( cd /etc/httpd/conf ; cp php.ini.dist php.ini )
+if [ ! -f $CONFDIR/php.ini ]; then
+  ( cd $CONFDIR ; cp php.ini.dist php.ini )
 fi
 EOF
 
