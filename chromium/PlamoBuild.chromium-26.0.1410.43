@@ -282,7 +282,7 @@ fi
 
 CHROMIUM_FLAGS=\${CHROMIUM_USER_FLAGS:-\$CHROMIUM_FLAGS}
 
-exec /usr/lib64/chromium/chromium \$CHROMIUM_FLAGS "\$@"
+exec /usr/${libdir}/chromium/chromium \$CHROMIUM_FLAGS "\$@"
 EOF
 chmod 755 $P/usr/bin/chromium
 
