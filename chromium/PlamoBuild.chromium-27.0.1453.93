@@ -1,16 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-26.0.1410.43.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-27.0.1453.93.tar.xz'
 verify=
 pkgbase=chromium
-vers=26.0.1410.43
+vers=27.0.1453.93
 arch=x86_64
 # arch=i586
 build=P1
-src=chromium-26.0.1410.43
+src=chromium-27.0.1453.93
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='chromium-20.0.1132.57-glib-2.16-use-siginfo_t.patch chromium-25.0.1364.152-fix-crash-when-cups-is-down.patch chromium-26.0.1410.43-speechd-0.8.patch'
+patchfiles='chromium-26.0.1410.43-speechd-0.8.patch'
 compress=txz
 ##############################################################
 
@@ -181,8 +181,8 @@ if [ $opt_config -eq 1 ] ; then
 
     sed -i '/nacl_test_data\.gyp/d' chrome/chrome_tests.gypi
 
-    mkdir -p native_client/toolchain/.tars
-    cp $W/${nacl##*/} native_client/toolchain/.tars
+    #mkdir -p native_client/toolchain/.tars
+    #cp $W/${nacl##*/} native_client/toolchain/.tars
 
     # find third_party/libpng -type f -not -iname '*.gyp*' -delete
 
@@ -202,7 +202,8 @@ if [ $opt_config -eq 1 ] ; then
         -Dproprietary_codecs=1 \
         -Duse_gconf=0 \
         -Duse_gnome_keyring=0 \
-        -Duse_kerberos=0 \
+        -Dlinux_link_kerberos=1 \
+        -Duse_kerberos=1 \
         -Duse_system_bzip2=1 \
         -Duse_system_ffmpeg=0 \
         -Duse_system_libevent=1 \
@@ -229,7 +230,7 @@ if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
     #export -n CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS"
-    make -j2 chrome chrome_sandbox BUILDTYPE=Release V=1
+    make -j4 chrome chrome_sandbox BUILDTYPE=Release V=1
   done
 fi
 if [ $opt_package -eq 1 ] ; then
