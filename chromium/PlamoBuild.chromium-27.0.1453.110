@@ -1,13 +1,13 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-27.0.1453.93.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-27.0.1453.110.tar.xz'
 verify=
 pkgbase=chromium
-vers=27.0.1453.93
+vers=27.0.1453.110
 arch=x86_64
 # arch=i586
 build=P1
-src=chromium-27.0.1453.93
+src=chromium-27.0.1453.110
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
 patchfiles='chromium-26.0.1410.43-speechd-0.8.patch'
