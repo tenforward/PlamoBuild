@@ -242,7 +242,7 @@ if [ $opt_package -eq 1 ] ; then
     # mozc
     install -D -m 755 $OUTDIR/mozc_server $P/usr/${libdir}/mozc/mozc_server
     install    -m 755 $OUTDIR/mozc_tool $P/usr/${libdir}/mozc/mozc_tool
-    install -d -m 644 $P/usr/${libdir}/mozc/documents/
+    install -d -m 755 $P/usr/${libdir}/mozc/documents/
     install -m 644 data/installer/*.html $P/usr/${libdir}/mozc/documents/
 
     # ibus-mozc
@@ -262,8 +262,9 @@ if [ $opt_package -eq 1 ] ; then
 
     # emacs-mozc
     install -D -m 755 $OUTDIR/mozc_emacs_helper $P/usr/bin/mozc_emacs_helper
-    install -d -m 644 $P/usr/share/emacs/site-lisp/emacs-mozc/
+    install -d -m 755 $P/usr/share/emacs/site-lisp/emacs-mozc/
     install -D -m 644 unix/emacs/mozc.el{,c} $P/usr/share/emacs/site-lisp/emacs-mozc/
+    install -D -m 644 $W/mozc-el_el $P/etc/template/.emacs.d/site-start.d/mozc-el_el
 
   done
 ######################################################################
