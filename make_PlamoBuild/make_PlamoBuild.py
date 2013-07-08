@@ -175,10 +175,10 @@ verify_checksum() {
     srcsum=`$checksum_command ${s##*/}`
     verifysum=`grep ${s##*/} $verify_file`
     if [ x"$srcsum" != x"$verifysum" ]; then
-      exit 1
+      return 1
     fi
   done
-  exit 0
+  return 0
 }
 
 W=`pwd`
