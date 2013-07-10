@@ -1,13 +1,14 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-28.0.1500.52.tar.xz'
-verify=
+#url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-28.0.1500.71.tar.xz'
+url='https://dev.archlinux.org/~foutrelis/sources/chromium/chromium-28.0.1500.71.tar.xz'
+verify=$url.sig
 pkgbase=chromium
-vers=28.0.1500.52
+vers=28.0.1500.71
 arch=x86_64
 # arch=i586
 build=P1
-src=chromium-28.0.1500.52
+src=chromium-28.0.1500.71
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
 patchfiles='chromium-system-harfbuzz-r0.patch'
