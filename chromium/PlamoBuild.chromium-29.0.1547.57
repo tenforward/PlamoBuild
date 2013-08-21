@@ -1,16 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-28.0.1500.95.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-29.0.1547.57.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=28.0.1500.95
+vers=29.0.1547.57
 arch=x86_64
 # arch=i586
 build=P1
-src=chromium-28.0.1500.95
+src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='chromium-system-harfbuzz-r0.patch'
+#patchfiles='chromium-system-harfbuzz-r0.patch'
 compress=txz
 ##############################################################
 
@@ -207,7 +207,7 @@ if [ $opt_config -eq 1 ] ; then
         -Duse_system_xdg_utils=1
         -Ddisable_pnacl=1
         -Dlinux_link_gnome_keyring=0
-        -Dlinux_sandbox_path=/usr/${libdir}/chromium/chrome_sandbox
+        -Dlinux_sandbox_path=/usr/${libdir}/chromium/chromium-sandbox
         -Dlinux_strip_binary=1
         -Dlinux_use_gold_binary=0
         -Dlinux_use_gold_flags=0
@@ -232,7 +232,7 @@ if [ $opt_config -eq 1 ] ; then
         -Drelease_extra_cflags="$BUILDCFLAGS")
 
     build/linux/unbundle/replace_gyp_files.py "${chromium_conf[@]}"
-    build/gyp_chromium --depth=. "${chromium_conf[@]}"
+    build/gyp_chromium -f make --depth=. "${chromium_conf[@]}"
 
   done
 fi
@@ -257,7 +257,7 @@ if [ $opt_package -eq 1 ] ; then
     cd ${B[$i]}
 
     install -m 0755 -D out/Release/chrome $P/usr/${libdir}/chromium/chromium
-    install -m4755 -o root -g root -D out/Release/chrome_sandbox $P/usr/${libdir}/chromium
+    install -m4755 -o root -g root -D out/Release/chrome_sandbox $P/usr/${libdir}/chromium/chromium-sandbox
     install -m0755 -D out/Release/libffmpegsumo.so $P/usr/${libdir}/chromium
 
     cp out/Release/*.pak $P/usr/${libdir}/chromium/
