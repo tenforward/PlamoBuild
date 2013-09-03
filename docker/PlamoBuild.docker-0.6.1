@@ -161,6 +161,12 @@ fi
 if [ $opt_package -eq 1 ] ; then
   install -D -m 755 $W/${pkgbase}-${vers} $P/usr/local/bin/${pkgbase}-${vers}
   install -D -m 755 $W/docker.init $P/etc/rc.d/init.d/docker
+  mkdir -p $P/install
+  cat << EOF >> $P/install/initpkg
+if [ ! -e /etc/certs/ca-certificates.crt ]; then
+  ( cd /etc/ssl/certs ; ln -s ca-bundle.crt ca-certificates.crt )
+fi
+EOF
   ( cd $P/usr/local/bin ; ln -s ${pkgbase}-${vers} docker )
   cd $P
   /sbin/makepkg ../$pkg.$compress <<EOF
