@@ -1,16 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-29.0.1547.76.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-30.0.1599.66.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=29.0.1547.76
+vers=30.0.1599.66
 arch=x86_64
 # arch=i586
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-#patchfiles='chromium-system-harfbuzz-r0.patch'
+patchfiles=''
 compress=txz
 ##############################################################
 
@@ -200,14 +200,13 @@ if [ $opt_config -eq 1 ] ; then
         -Dlibspeechd_h_prefix=speech-dispatcher/
         -Duse_system_flac=1
         -Duse_system_harfbuzz=1
-        -Duse_system_icu=1
+        -Duse_system_icu=0
         -Duse_system_webp=0
         -Duse_system_opus=0
         -Duse_system_snappy=0
         -Duse_system_xdg_utils=1
         -Ddisable_pnacl=1
         -Dlinux_link_gnome_keyring=0
-        -Dlinux_sandbox_path=/usr/${libdir}/chromium/chromium-sandbox
         -Dlinux_strip_binary=1
         -Dlinux_use_gold_binary=0
         -Dlinux_use_gold_flags=0
@@ -257,7 +256,7 @@ if [ $opt_package -eq 1 ] ; then
     cd ${B[$i]}
 
     install -m 0755 -D out/Release/chrome $P/usr/${libdir}/chromium/chromium
-    install -m4755 -o root -g root -D out/Release/chrome_sandbox $P/usr/${libdir}/chromium/chromium-sandbox
+    install -m4755 -o root -g root -D out/Release/chrome_sandbox $P/usr/${libdir}/chromium/chrome-sandbox
     install -m0755 -D out/Release/libffmpegsumo.so $P/usr/${libdir}/chromium
 
     cp out/Release/*.pak $P/usr/${libdir}/chromium/
