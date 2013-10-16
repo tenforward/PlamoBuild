@@ -1,5 +1,0 @@
-diff -uNr lxc-0.7.5.orig//00-ptmx.rules lxc-0.7.5//00-ptmx.rules
---- lxc-0.7.5.orig//00-ptmx.rules	1970-01-01 09:00:00.000000000 +0900
-+++ lxc-0.7.5//00-ptmx.rules	2011-11-08 14:42:38.692906442 +0900
-@@ -0,0 +1 @@
-+KERNEL=="ptmx", NAME="pts/%k", SYMLINK+="%k"
