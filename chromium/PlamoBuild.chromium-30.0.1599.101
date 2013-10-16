@@ -1,9 +1,9 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-30.0.1599.66.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-30.0.1599.101.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=30.0.1599.66
+vers=30.0.1599.101
 arch=x86_64
 # arch=i586
 build=P1
