@@ -1,12 +1,12 @@
 #!/bin/sh
 ##############################################################
 pkgbase=docker
-vers=0.6.3
+vers=0.6.4
 url="http://get.docker.io/builds/Linux/x86_64/${pkgbase}-${vers}"
 verify=
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
-src=docker-0.6.3
+src=${pkgbase}-${vers}
 OPT_CONFIG=''
 DOCS=''
 patchfiles=''
