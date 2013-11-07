@@ -173,7 +173,7 @@ if [ $opt_config -eq 1 ] ; then
       patch -p1 < $W/$patch
     done
 
-    cmake -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_GTK2=yes -DENABLE_GTK3=no
+    cmake -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_GTK2=yes -DENABLE_GTK3=yes
   done
 fi
 if [ $opt_build -eq 1 ] ; then
