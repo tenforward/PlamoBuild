@@ -186,7 +186,7 @@ if [ $opt_config -eq 1 ] ; then
       -DENABLE_GTK2_IM_MODULE=ON \
       -DENABLE_GTK3_IM_MODULE=ON \
       -DENABLE_QT_IM_MODULE=ON \
-      -DLIB_INSTALL_DIR=/usr/lib64
+      -DLIB_INSTALL_DIR=/usr/${libdir}
   done
 fi
 if [ $opt_build -eq 1 ] ; then
