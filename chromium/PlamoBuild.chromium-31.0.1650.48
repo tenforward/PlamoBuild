@@ -1,16 +1,16 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-30.0.1599.101.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-31.0.1650.48.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=30.0.1599.101
+vers=31.0.1650.48
 arch=x86_64
 # arch=i586
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles=''
+patchfiles='chromium-31.0.1650.48-NPAPI-cookies.patch chromium-31.0.1650.48-NPN_URLRedirectResponse.patch'
 compress=txz
 ##############################################################
 
@@ -175,8 +175,9 @@ if [ $opt_config -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
     for patch in $patchfiles ; do
-       echo "patch -p1 < $patch"
-       patch -p1 < $W/$patch
+       echo "patch -p0 < $patch"
+       #patch -p1 < $W/$patch
+       patch -p0 < $W/$patch
     done
 
     sed -i '/nacl_test_data\.gyp/d' chrome/chrome_tests.gypi
