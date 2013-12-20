@@ -16,7 +16,7 @@ pkgbase=fcitx_mozc
 # arch=x86_64
 # arch=i586
 arch=`uname -m | sed -e 's/i.86/i586/'`
-build=P1
+build=P2
 src=mozc-${vers}
 OPT_CONFIG=''
 DOCS=''
@@ -209,6 +209,11 @@ if [ $opt_build -eq 1 ] ; then
     python build_mozc.py gyp --server_dir="/usr/${libdir}/mozc"
     python build_mozc.py build_tools -c Release
     python build_mozc.py build -c Release ${TARGETS}
+
+    pushd unix/emacs
+    emacs -batch -f batch-byte-compile mozc.el
+    popd
+
   done
 fi
 if [ $opt_package -eq 1 ] ; then
@@ -255,6 +260,13 @@ if [ $opt_package -eq 1 ] ; then
     install -m 644 "$W/fcitx-mozc-icons/mozc-dictionary.png" "$P/usr/share/fcitx/mozc/icon/mozc-dictionary.png"
     install -m 644 "$W/fcitx-mozc-icons/mozc-properties.png" "$P/usr/share/fcitx/mozc/icon/mozc-properties.png"
     install -m 644 "$W/fcitx-mozc-icons/mozc-tool.png" "$P/usr/share/fcitx/mozc/icon/mozc-tool.png"
+
+    #  emacs
+    install -D -m 755 $OUTDIR/mozc_emacs_helper $P/usr/bin/mozc_emacs_helper
+    install -d -m 755 $P/usr/share/emacs/site-lisp/emacs-mozc/
+    install -D -m 644 unix/emacs/mozc.el{,c} $P/usr/share/emacs/site-lisp/emacs-mozc/
+    install -D -m 644 $W/mozc-el_el $P/etc/template/.emacs.d/site-start.d/mozc-el_el
+
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
