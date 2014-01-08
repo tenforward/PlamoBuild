@@ -1,22 +1,23 @@
 #!/bin/sh
 ##############################################################
-vers=1.11.1522.102
-gypver=1656
+vers=1.13.1651.102
+gypver=1829
 protobufver=2.5.0
-zipver=201307
+# ↓201311,12 でやるとエラーになるので 201310
+zipver=201310
 url="http://mozc.googlecode.com/files/mozc-${vers}.tar.bz2
     http://downloads.sourceforge.net/pnsft-aur/ken_all-${zipver}.zip
     http://downloads.sourceforge.net/pnsft-aur/jigyosyo-${zipver}.zip
     http://download.fcitx-im.org/fcitx-mozc/fcitx-mozc-${vers}.1.patch
-    http://downloads.sourceforge.net/project/pnsft-aur/mozc/gyp-${gypver}.tar.xz
     http://protobuf.googlecode.com/files/protobuf-${protobufver}.tar.bz2
     http://download.fcitx-im.org/fcitx-mozc/fcitx-mozc-icon.tar.gz"
+gypurl="http://gyp.googlecode.com/svn/trunk/"
 verify=
 pkgbase=fcitx_mozc
 # arch=x86_64
 # arch=i586
 arch=`uname -m | sed -e 's/i.86/i586/'`
-build=P2
+build=P1
 src=mozc-${vers}
 OPT_CONFIG=''
 DOCS=''
@@ -169,6 +170,10 @@ if [ $opt_download -eq 1 ] ; then
     *) tar xvpf ${i##*/} ;;
     esac
   done
+  if [ ! -d gyp ]; then
+    svn checkout $gypurl gyp
+  fi
+  pushd gyp && svn update -r $gypver
 fi
 
 if [ $opt_config -eq 1 ] ; then
@@ -192,10 +197,11 @@ if [ $opt_config -eq 1 ] ; then
     python dictionary/gen_zip_code_seed.py --zip_code=$W/KEN_ALL.CSV --jigyosyo=$W/JIGYOSYO.CSV >> data/dictionary_oss/dictionary09.txt
 
     # copy gyp
-    cp -rf $W/gyp-${gypver}/* third_party/gyp
+    cp -rf $W/gyp/* third_party/gyp
 
     # copy protobuf
-    cp -rf $W/protobuf-${protobufver} protobuf/files
+    mkdir third_party/protobuf
+    cp -rf $W/protobuf-${protobufver}/* third_party/protobuf
 
   done
 fi
