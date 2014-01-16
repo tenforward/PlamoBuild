@@ -1,8 +1,8 @@
 #!/bin/sh
 
 start() {
-  if [ -x /usr/local/bin/docker ]; then
-    /usr/local/bin/docker -d >> /var/log/docker.log 2>&1 &
+  if [ -x /usr/bin/docker ]; then
+    /usr/bin/docker -d >> /var/log/docker.log 2>&1 &
   fi
 }
 
