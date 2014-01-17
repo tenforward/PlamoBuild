@@ -1,16 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-31.0.1650.63.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-32.0.1700.77.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=31.0.1650.63
-arch=x86_64
-# arch=i586
+vers=32.0.1700.77
+arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='chromium-31.0.1650.48-NPAPI-cookies.patch chromium-31.0.1650.48-NPN_URLRedirectResponse.patch'
+patchfiles=''
 compress=txz
 ##############################################################
 
@@ -221,7 +220,7 @@ if [ $opt_config -eq 1 ] ; then
         -Duse_system_bzip2=1
         -Duse_system_ffmpeg=0
         -Duse_system_libevent=1
-        -Duse_system_libpng=0
+        -Duse_system_libpng=1
         -Duse_system_libjpeg=1
         -Duse_system_libxslt=1
         -Duse_system_libxml=1
