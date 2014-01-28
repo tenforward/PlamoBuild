@@ -1,9 +1,9 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-32.0.1700.77.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-32.0.1700.102.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=32.0.1700.77
+vers=32.0.1700.102
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
 src=chromium-${vers}
