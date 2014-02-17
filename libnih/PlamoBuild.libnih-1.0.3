@@ -10,7 +10,7 @@ build=P1
 src=libnih-1.0.3
 OPT_CONFIG=''
 DOCS='ABOUT-NLS AUTHORS COPYING ChangeLog HACKING INSTALL NEWS README TODO'
-patchfiles=''
+patchfiles='pkgconfdir.patch'
 compress=txz
 ##############################################################
 
@@ -194,6 +194,11 @@ if [ $opt_config -eq 1 ] ; then
     # if [ -f autogen.sh ] ; then
     #   sh ./autogen.sh
     # fi
+
+    aclocal
+    autoheader
+    automake -a -c
+    autoconf
 
     if [ -x configure ] ; then
       export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
