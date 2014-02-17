@@ -1,0 +1,24 @@
+diff -uNr libnih-1.0.3/nih/Makefile.am build/nih/Makefile.am
+--- libnih-1.0.3/nih/Makefile.am	2010-09-21 08:17:01.000000000 +0900
++++ build/nih/Makefile.am	2014-02-17 15:34:46.281634733 +0900
+@@ -71,7 +71,7 @@
+ 	test_hash.h
+ 
+ 
+-pkgconfigdir = $(prefix)/lib/pkgconfig
++pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = libnih.pc
+ 
+ 
+diff -uNr libnih-1.0.3/nih-dbus/Makefile.am build/nih-dbus/Makefile.am
+--- libnih-1.0.3/nih-dbus/Makefile.am	2010-09-21 08:17:01.000000000 +0900
++++ build/nih-dbus/Makefile.am	2014-02-17 15:35:06.312591497 +0900
+@@ -49,7 +49,7 @@
+ 	test_dbus.h
+ 
+ 
+-pkgconfigdir = $(prefix)/lib/pkgconfig
++pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = libnih-dbus.pc
+ 
+ 
