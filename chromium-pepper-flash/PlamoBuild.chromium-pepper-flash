@@ -1,0 +1,57 @@
+#!/bin/sh -ex
+pkgbase=chromium_pepper_flash
+vers=12.0.0.44
+build=P1
+_channel='stable'
+_verbld='32.0.1700.107-1'
+arch=`uname -m | sed -e 's/i.86/i386/'`
+url="https://dl.google.com/linux/chrome/rpm/stable/${arch}/google-chrome-${_channel}-${_verbld}.${arch}.rpm"
+rpm=${url##*/}
+
+if [ ! -f ${rpm} ]; then
+  wget $url
+fi
+
+if [ "$arch" = "x86_64" ]; then
+  libdir="lib64"
+else
+  libdir="lib"
+fi
+
+if [ ! -d build ]; then
+  mkdir -p ./build
+fi
+
+rm -rf ./build/*
+
+pushd build
+rpm2cpio ../google-chrome-${_channel}-${_verbld}.${arch}.rpm | cpio -ivd
+popd
+
+P=./work
+
+if [ ! -d $P ]; then
+  mkdir -p $P
+fi
+
+rm -rf $P/*
+
+install -d $P/usr/${libdir}/chromium/PepperFlash
+install -m644 ./build/opt/google/chrome/PepperFlash/* $P/usr/${libdir}/chromium/PepperFlash
+
+install -d $P/usr/share/doc/${pkgbase}-${vers}
+install -m644 $0 $P/usr/share/doc/${pkgbase}-${vers}/
+
+mkdir -p $P/install
+cat <<EOF >> $P/install/initpkg
+if [ -f /etc/default/chromium ] && ! egrep "CHROMIUM_FLAGS.*ppapi-flash-path" /etc/default/chromium  > /dev/null 2>&1 ; then
+  sed -i "/CHROMIUM_FLAGS/s|\"$| --ppapi-flash-path=/usr/${libdir}/chromium/PepperFlash/libpepflashplayer.so\"|" /etc/default/chromium
+fi
+EOF
+
+pushd $P
+makepkg ../${pkgbase}-${vers}-${arch}-${build}.txz <<EOF
+y
+1
+EOF
+popd
