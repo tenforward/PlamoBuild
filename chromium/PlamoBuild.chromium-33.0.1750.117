@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-32.0.1700.102.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-33.0.1750.117.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=32.0.1700.102
+vers=33.0.1750.117
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles=''
+patchfiles='chromium-gn-r0.patch'
 compress=txz
 ##############################################################
 
