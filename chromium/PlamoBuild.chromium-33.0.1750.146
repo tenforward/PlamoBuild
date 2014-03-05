@@ -1,9 +1,9 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-33.0.1750.117.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-33.0.1750.146.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=33.0.1750.117
+vers=33.0.1750.146
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
 src=chromium-${vers}
@@ -180,6 +180,12 @@ if [ $opt_config -eq 1 ] ; then
     done
 
     sed -i '/nacl_test_data\.gyp/d' chrome/chrome_tests.gypi
+
+    sed -i '/python_ver/s/2\.6/2\.7/' build/common.gypi 
+
+    if [ $arch = "x86_64" ]; then
+        sed -i "/system_libdir/s/'lib'/'lib64'/" build/common.gypi
+    fi
 
     #mkdir -p native_client/toolchain/.tars
     #cp $W/${nacl##*/} native_client/toolchain/.tars
