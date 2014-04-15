@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-33.0.1750.152.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-34.0.1847.116.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=33.0.1750.152
+vers=34.0.1847.116
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='chromium-gn-r0.patch'
+patchfiles='chromium-gn-r1.patch chromium-depot-tools-r0.patch'
 compress=txz
 ##############################################################
 
@@ -267,6 +267,7 @@ if [ $opt_package -eq 1 ] ; then
 
     cp out/Release/*.pak $P/usr/${libdir}/chromium/
     cp -a out/Release/locales $P/usr/${libdir}/chromium/
+    cp out/Release/icudtl.dat $P/usr/${libdir}/chromium/
     cp -a out/Release/resources $P/usr/${libdir}/chromium/
     mkdir -p $P/usr/bin
     #( cd $P/usr/${libdir}/chromium/ ; ln -s chromium ../../bin/chromium )
