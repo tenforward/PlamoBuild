@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-34.0.1847.137.tar.xz'
+url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-35.0.1916.114.tar.xz'
 #verify=$url.sig
 pkgbase=chromium
-vers=34.0.1847.137
+vers=35.0.1916.114
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='chromium-gn-r1.patch chromium-depot-tools-r0.patch'
+patchfiles=''
 compress=txz
 ##############################################################
 
@@ -109,12 +109,14 @@ if [ $arch = "x86_64" ]; then
   suffix="64"
   TARGETARCH="x64"
   BUILDCFLAGS="-isystem /usr/include -m64 -I/usr/heimdal/include -O1"
+  BUILDLDFLAGS="-L/usr/heimdal/lib64"
 else
   target="-m32"
   libdir="lib"
   suffix=""
   TARGETARCH="ia32"
   BUILDCFLAGS="-isystem /usr/include -m32 -I/usr/heimdal/include -O1"
+  BUILDLDFLAGS="-L/usr/heimdal/lib"
 fi
 
 if [ $# -eq 0 ] ; then
@@ -175,77 +177,78 @@ if [ $opt_config -eq 1 ] ; then
     cd ${B[$i]}
     for patch in $patchfiles ; do
        echo "patch -p0 < $patch"
-       #patch -p1 < $W/$patch
        patch -p0 < $W/$patch
     done
 
-    sed -i '/nacl_test_data\.gyp/d' chrome/chrome_tests.gypi
+    #mkdir -p ../python2-path
+    #ln -sf /usr/bin/python ../python2-path
 
-    sed -i '/python_ver/s/2\.6/2\.7/' build/common.gypi 
-
+    #sed -i '/nacl_test_data\.gyp/d' chrome/chrome_tests.gypi
+    #sed -i '/python_ver/s/2\.6/2\.7/' build/common.gypi 
     if [ $arch = "x86_64" ]; then
         sed -i "/system_libdir/s/'lib'/'lib64'/" build/common.gypi
     fi
 
-    #mkdir -p native_client/toolchain/.tars
-    #cp $W/${nacl##*/} native_client/toolchain/.tars
-
-    # find third_party/libpng -type f -not -iname '*.gyp*' -delete
-
-    export -n CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS"
-
-    #build/gyp_chromium build/all.gyp --depth=. \
     chromium_conf=(
         -Dtarget_arch=$TARGETARCH
         -Dwerror=
+        -Dclang=0
+        -Dclang_use_chrome_plugins=0
+        -Ddisable_nacl=1
+        -Dpython_ver=2.7
         -Dlinux_link_gsettings=1
         -Dlinux_link_libpci=1
 	-Dlinux_link_libspeechd=1
         -Dlinux_link_pulseaudio=1
-        -Dlinux_use_tcmalloc=0
-        -Dlibspeechd_h_prefix=speech-dispatcher/
-        -Duse_system_flac=1
-        -Duse_system_harfbuzz=1
-        -Duse_system_icu=0
-        -Duse_system_webp=0
-        -Duse_system_opus=0
-        -Duse_system_snappy=0
-        -Duse_system_xdg_utils=1
-        -Ddisable_pnacl=1
-        -Dlinux_link_gnome_keyring=0
         -Dlinux_strip_binary=1
         -Dlinux_use_gold_binary=0
         -Dlinux_use_gold_flags=0
-        -Dno_strict_aliasing=1
+        -Dlogging_like_official_build=1
+        -Dlibspeechd_h_prefix=speech-dispatcher/
         -Dffmpeg_branding=Chrome
         -Dproprietary_codecs=1
-        -Duse_gconf=0
-        -Duse_gnome_keyring=0
-        -Dlinux_link_kerberos=1
-        -Duse_kerberos=1
         -Duse_system_bzip2=1
+        -Duse_system_flac=1
         -Duse_system_ffmpeg=0
+        -Duse_system_harfbuzz=1
         -Duse_system_libevent=1
-        -Duse_system_libpng=0
         -Duse_system_libjpeg=1
-        -Duse_system_libxslt=1
+        -Duse_system_libpng=0
         -Duse_system_libxml=1
+        -Duse_system_snappy=0
         -Duse_system_ssl=0
-        -Duse_system_zlib=0
+        -Duse_system_xdg_utils=1
         -Duse_system_yasm=1
-        -Ddisable_nacl=1
+        -Duse_system_zlib=0
+        -Duse_mojo=0
+        -Duse_gconf=0
+        -Ddisable_glibc=0
+        -Dlinux_link_kerberos=1
+        -Dldflags="$BUILDLDFLAGS"
         -Drelease_extra_cflags="$BUILDCFLAGS")
+#        -Duse_system_icu=0
+#        -Duse_system_webp=0
+#        -Duse_system_opus=0
+#        -Ddisable_pnacl=1
+#        -Dlinux_link_gnome_keyring=0
+#        -Dno_strict_aliasing=1
+#        -Duse_gnome_keyring=0
+#        -Duse_kerberos=1
+#        -Duse_system_libxslt=1
+#        -Dlinux_use_tcmalloc=0
+
 
     build/linux/unbundle/replace_gyp_files.py "${chromium_conf[@]}"
-    build/gyp_chromium -f make --depth=. "${chromium_conf[@]}"
+    #build/gyp_chromium -f make --depth=. "${chromium_conf[@]}"
+    build/gyp_chromium --depth=. "${chromium_conf[@]}"
 
   done
 fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    #export -n CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS"
-    make -j4 chrome chrome_sandbox BUILDTYPE=Release V=1
+    export CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS"
+    ninja -C out/Release chrome chrome_sandbox chromedriver
   done
 fi
 if [ $opt_package -eq 1 ] ; then
