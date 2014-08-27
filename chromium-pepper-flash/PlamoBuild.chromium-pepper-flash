@@ -1,9 +1,9 @@
 #!/bin/sh -ex
 pkgbase=chromium_pepper_flash
-vers=13.0.0.214
+vers=14.0.0.177
 build=P1
 _channel='stable'
-_verbld='35.0.1916.114-1'
+_verbld='37.0.2062.94-1'
 arch=`uname -m | sed -e 's/i.86/i386/'`
 url="https://dl.google.com/linux/chrome/rpm/stable/${arch}/google-chrome-${_channel}-${_verbld}.${arch}.rpm"
 rpm=${url##*/}
