@@ -1,17 +1,17 @@
 #!/bin/sh
 ##############################################################
-url='http://download.openvz.org/criu/criu-0.8.tar.bz2'
+url='http://download.openvz.org/criu/criu-1.3-rc2.tar.bz2'
 verify=
 pkgbase=criu
-vers=0.8
+vers=1.3_rc2
 # arch=x86_64
 # arch=i586
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
-src=criu-0.8
+src=criu-1.3-rc2
 OPT_CONFIG=''
 DOCS='COPYING README'
-patchfiles='no-asciidoc.patch'
+#patchfiles='no-asciidoc.patch'
 compress=txz
 ##############################################################
 
@@ -215,12 +215,14 @@ if [ $opt_package -eq 1 ] ; then
         sed -i -e 's|GCONFTOOL = /usr/bin/gconftool-2|GCONFTOOL = echo|' $mk
     done
     if [ -f Makefile ] ; then
-      make install DESTDIR=$P PREFIX=/usr
+      make install DESTDIR=$P PREFIX=/usr LOGROTATEDIR=/etc/logrotate.d
     fi
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  rm -rf $P/usr/lib
+  rm -rf $P/etc
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
     mkdir -p $P/install
