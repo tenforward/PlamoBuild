@@ -1,12 +1,11 @@
 #!/bin/sh
 ##############################################################
-url='http://protobuf-c.googlecode.com/files/protobuf-c-0.15.tar.gz'
+url='https://github.com/protobuf-c/protobuf-c/archive/v1.0.1.tar.gz'
 pkgbase=protobuf_c
-vers=0.15
-arch=x86_64
-# arch=i586
+vers=1.0.1
+arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
-src=protobuf-c-0.15
+src=protobuf-c-1.0.1
 OPT_CONFIG=''
 DOCS='ChangeLog README TODO'
 patchfiles=''
@@ -139,9 +138,9 @@ if [ $opt_config -eq 1 ] ; then
        patch -p1 < $W/$patch
     done
 
-    # if [ -f autogen.sh ] ; then
-    #   sh ./autogen.sh
-    # fi
+    if [ -f autogen.sh ] ; then
+      sh ./autogen.sh
+    fi
 
       if [ -x configure ] ; then
          export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
@@ -161,7 +160,7 @@ if [ $opt_build -eq 1 ] ; then
     cd ${B[$i]}
     if [ -f Makefile ] ; then
       export LDFLAGS='-Wl,--as-needed'
-      make -j3
+      make
     fi
   done
 fi
