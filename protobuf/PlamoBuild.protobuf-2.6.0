@@ -1,13 +1,12 @@
 #!/bin/sh
 ##############################################################
-url='http://protobuf.googlecode.com/files/protobuf-2.5.0.tar.bz2'
-sha1sum='62c10dcdac4b69cc8c6bb19f73db40c264cb2726'
+url='https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.bz2'
+sha1sum=''
 pkgbase=protobuf
-vers=2.5.0
-arch=x86_64
-# arch=i586
+vers=2.6.0
+arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
-src=protobuf-2.5.0
+src=protobuf-2.6.0
 OPT_CONFIG=''
 DOCS='CHANGES.txt CONTRIBUTORS.txt COPYING.txt INSTALL.txt README.txt'
 patchfiles=''
@@ -117,13 +116,13 @@ if [ $opt_download -eq 1 ] ; then
   for i in $url ; do
     if [ ! -f ${i##*/} ] ; then wget $i ; fi
   done
-  archivesum=`sha1sum ${url##*/} | awk '{ print $1 }'`
-  if [ x"${sha1sum}" = x"${archivesum}" ] ; then
-      echo "archive verify was successed."
-  else
-      echo "archive verify was failed."
-      exit 1
-  fi
+  #archivesum=`sha1sum ${url##*/} | awk '{ print $1 }'`
+  #if [ x"${sha1sum}" = x"${archivesum}" ] ; then
+  #    echo "archive verify was successed."
+  #else
+  #    echo "archive verify was failed."
+  #    exit 1
+  #fi
   for i in $url ; do
     case ${i##*.} in
     gz) tar xvpzf ${i##*/} ;;
