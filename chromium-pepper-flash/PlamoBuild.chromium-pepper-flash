@@ -45,7 +45,7 @@ install -m644 $0 $P/usr/share/doc/${pkgbase}-${vers}/
 mkdir -p $P/install
 cat <<EOF >> $P/install/initpkg
 if [ -f /etc/default/chromium ] && ! egrep "CHROMIUM_FLAGS.*ppapi-flash-path" /etc/default/chromium  > /dev/null 2>&1 ; then
-  sed -i "/CHROMIUM_FLAGS/s|\"$| --ppapi-flash-path=/usr/${libdir}/chromium/PepperFlash/libpepflashplayer.so\"|" /etc/default/chromium
+  sed -i "/^CHROMIUM_FLAGS/s|\"$| --ppapi-flash-path=/usr/${libdir}/chromium/PepperFlash/libpepflashplayer.so\"|" /etc/default/chromium
 fi
 EOF
 
