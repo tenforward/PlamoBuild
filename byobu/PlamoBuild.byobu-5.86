@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='http://byobu.co/download/byobu_5.80.orig.tar.gz'
-verify='http://byobu.co/download/byobu_5.80-1.dsc'
 pkgbase=byobu
-vers=5.80
+vers=5.86
+url="http://byobu.co/download/${pkgbase}_${vers}.orig.tar.gz"
+verify="http://byobu.co/download/${pkgbase}_${vers}-1.dsc"
 commitid=
 # arch=x86_64
 # arch=i586
 arch=`uname -m | sed -e 's/i.86/i586/'`
 build=P1
-src=byobu-5.80
+src=${pkgbase}-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS COPYING ChangeLog INSTALL NEWS README'
 patchfiles=''
