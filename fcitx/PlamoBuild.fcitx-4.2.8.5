@@ -1,17 +1,14 @@
 #!/bin/sh
 ##############################################################
-pkgbase=byobu
-vers=5.86
-url="http://byobu.co/download/${pkgbase}_${vers}.orig.tar.gz"
-verify="http://byobu.co/download/${pkgbase}_${vers}-1.dsc"
-commitid=
-# arch=x86_64
-# arch=i586
-arch=`uname -m | sed -e 's/i.86/i586/'`
+pkgbase=fcitx
+vers=4.2.8.5
+url="http://download.fcitx-im.org/fcitx/fcitx-${vers}_dict.tar.xz"
+verify=
+arch=`uname -m`
 build=P1
-src=${pkgbase}-${vers}
+src=fcitx-${vers}
 OPT_CONFIG=''
-DOCS='AUTHORS COPYING ChangeLog INSTALL NEWS README'
+DOCS='AUTHORS COPYING COPYING.LIBS ChangeLog INSTALL README THANKS TODO'
 patchfiles=''
 compress=txz
 ##############################################################
@@ -131,20 +128,9 @@ else
 fi
 if [ $opt_download -eq 1 ] ; then
   for i in $url ; do
-    case ${i##*.} in
-    git)
-      if [ ! -d `basename ${i##*/} .git` ] ; then
-        git clone $i
-      else
-        ( cd `basename ${i##*/} .git` ; git pull origin master )
-      fi
-      ;;
-    *)
-      if [ ! -f ${i##*/} ] ; then
-        wget $i
-      fi
-      ;;
-    esac
+    if [ ! -f ${i##*/} ] ; then
+      wget $i
+    fi
   done
   for i in $verify ; do
     if [ ! -f ${i##*/} ] ; then
@@ -168,12 +154,6 @@ if [ $opt_download -eq 1 ] ; then
     case ${i##*.} in
     gz) tar xvpzf ${i##*/} ;;
     bz2) tar xvpjf ${i##*/} ;;
-    git) ( cd `basename ${i##*/} .git`
-        git checkout origin/master
-        if [ -n "$commitid" ] ; then
-          git reset --hard $commitid
-        fi
-        git set-file-times ) ;;
     *) tar xvpf ${i##*/} ;;
     esac
   done
@@ -193,26 +173,23 @@ if [ $opt_config -eq 1 ] ; then
       patch -p1 < $W/$patch
     done
 
-    # if [ -f autogen.sh ] ; then
-    #   sh ./autogen.sh
-    # fi
-
-    if [ -x configure ] ; then
-      export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
-      export LDFLAGS='-Wl,--as-needed' 
-      export CFLAGS="-isystem /usr/include $target" 
-      export CPPFLAGS="-isystem /usr/include $target "
-      ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
-    fi
-    if [ $? != 0 ]; then
-      echo "configure error. $0 script stop"
-      exit 255
-    fi
+    mkdir build
+    cd build
+    cmake .. \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DSYSCONFDIR=/etc \
+      -DFORCE_ENCHANT=ON \
+      -DENABLE_TEST=ON \
+      -DENABLE_GTK2_IM_MODULE=ON \
+      -DENABLE_GTK3_IM_MODULE=ON \
+      -DENABLE_QT_IM_MODULE=ON \
+      -DLIB_INSTALL_DIR=/usr/${libdir}
   done
 fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
-    cd ${B[$i]}
+    cd ${B[$i]}/build
     if [ -f Makefile ] ; then
       export LDFLAGS='-Wl,--as-needed'
       make -j3
@@ -230,7 +207,7 @@ if [ $opt_package -eq 1 ] ; then
   if [ -d $C ] ; then rm -rf $C ; fi ; mkdir -p $C
   touch $W/i.st ; sleep 1
   for i in `seq 0 $((${#B[@]} - 1))` ; do
-    cd ${B[$i]}
+    cd ${B[$i]}/build
     for mk in `find . -name "[Mm]akefile" ` ; do
       sed -i -e 's|GCONFTOOL = /usr/bin/gconftool-2|GCONFTOOL = echo|' $mk
     done
@@ -242,6 +219,14 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  mkdir -p $P/install
+  cat<<EOF >> $P/install/initpkg
+/usr/bin/gtk-update-icon-cache -q -t -f usr/share/icons/hicolor
+/usr/bin/update-desktop-database -q
+/usr/bin/update-mime-database usr/share/mime &> /dev/null
+/usr/bin/gtk-query-immodules-2.0 --update-cache
+/usr/bin/gtk-query-immodules-3.0 --update-cache
+EOF
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
     mkdir -p $P/install

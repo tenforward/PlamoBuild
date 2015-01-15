@@ -1,12 +1,12 @@
 #!/bin/sh
 ##############################################################
-url='http://download.fcitx-im.org/fcitx-configtool/fcitx-configtool-0.4.8.tar.xz'
-verify=
 pkgbase=fcitx_configtool
 vers=0.4.8
-arch=`uname -m | sed -e 's/i.86/i586/'`
+url="http://download.fcitx-im.org/fcitx-configtool/fcitx-configtool-${vers}.tar.xz"
+verify=
+arch=`uname -m`
 build=P1
-src=fcitx-configtool-0.4.8
+src=fcitx-configtool-${vers}
 OPT_CONFIG=''
 DOCS='COPYING INSTALL README'
 patchfiles=''

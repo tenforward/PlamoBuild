@@ -1,16 +1,14 @@
 #!/bin/sh
 ##############################################################
-url='http://download.fcitx-im.org/fcitx/fcitx-4.2.8.3_dict.tar.xz'
+pkgbase=fcitx_anthy
+vers=0.2.1
+url="http://download.fcitx-im.org/fcitx-anthy/fcitx-anthy-${vers}.tar.xz"
 verify=
-pkgbase=fcitx
-vers=4.2.8.3
-# arch=x86_64
-# arch=i586
-arch=`uname -m | sed -e 's/i.86/i586/'`
+arch=`uname -m`
 build=P1
-src=fcitx-4.2.8.3
+src=fcitx-anthy-${vers}
 OPT_CONFIG=''
-DOCS='AUTHORS COPYING COPYING.LIBS ChangeLog INSTALL README THANKS TODO'
+DOCS='AUTHORS COPYING INSTALL README'
 patchfiles=''
 compress=txz
 ##############################################################
@@ -177,25 +175,13 @@ if [ $opt_config -eq 1 ] ; then
 
     mkdir build
     cd build
-    cmake .. \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_INSTALL_PREFIX=/usr \
-      -DSYSCONFDIR=/etc \
-      -DFORCE_ENCHANT=ON \
-      -DENABLE_TEST=ON \
-      -DENABLE_GTK2_IM_MODULE=ON \
-      -DENABLE_GTK3_IM_MODULE=ON \
-      -DENABLE_QT_IM_MODULE=ON \
-      -DLIB_INSTALL_DIR=/usr/${libdir}
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
   done
 fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}/build
-    if [ -f Makefile ] ; then
-      export LDFLAGS='-Wl,--as-needed'
-      make -j3
-    fi
+    make -j3
   done
 fi
 if [ $opt_package -eq 1 ] ; then
@@ -221,14 +207,6 @@ if [ $opt_package -eq 1 ] ; then
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
-  mkdir -p $P/install
-  cat<<EOF >> $P/install/initpkg
-/usr/bin/gtk-update-icon-cache -q -t -f usr/share/icons/hicolor
-/usr/bin/update-desktop-database -q
-/usr/bin/update-mime-database usr/share/mime &> /dev/null
-/usr/bin/gtk-query-immodules-2.0 > /etc/gtk-2.0/gtk.immodules
-/usr/bin/gtk-query-immodules-3.0 --update-cache
-EOF
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
     mkdir -p $P/install
