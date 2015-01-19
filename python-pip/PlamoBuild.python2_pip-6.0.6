@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-pkgbase=python_pip
-vers=1.5.6
-url="https://pypi.python.org/packages/source/p/pip/pip-1.5.6.tar.gz"
+pkgbase=python2_pip
+vers=6.0.6
+url="https://pypi.python.org/packages/source/p/pip/pip-${vers}.tar.gz"
 verify=${url}.asc
 commitid=
-arch=`uname -m | sed -e 's/i.86/i586/'`
+arch=`uname -m`
 build=P1
-src=pip-1.5.6
+src=pip-${vers}
 OPT_CONFIG=''
-DOCS='AUTHORS.txt CHANGES.txt LICENSE.txt PROJECT.txt README.rst'
+DOCS='AUTHORS.txt CHANGES.txt LICENSE.txt README.rst'
 patchfiles=''
 compress=txz
 ##############################################################
@@ -195,7 +195,7 @@ fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    python setup.py build
+    python2 setup.py build
   done
 fi
 if [ $opt_package -eq 1 ] ; then
@@ -210,11 +210,12 @@ if [ $opt_package -eq 1 ] ; then
   touch $W/i.st ; sleep 1
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    python setup.py install --prefix=/usr --root=$P
+    python2 setup.py install --prefix=/usr --root=$P
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
+  rm -f $P/usr/bin/pip
   mkdir -p $docdir/$src
   if [ -d $P/usr/share/omf ]; then
     mkdir -p $P/install
