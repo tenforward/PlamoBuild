@@ -5,7 +5,7 @@ vers=4.2.8.5
 url="http://download.fcitx-im.org/fcitx/fcitx-${vers}_dict.tar.xz"
 verify=
 arch=`uname -m`
-build=P1
+build=P2
 src=fcitx-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS COPYING COPYING.LIBS ChangeLog INSTALL README THANKS TODO'
@@ -179,6 +179,7 @@ if [ $opt_config -eq 1 ] ; then
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX=/usr \
       -DSYSCONFDIR=/etc \
+      -DFORCE_PRESAGE=ON \
       -DFORCE_ENCHANT=ON \
       -DENABLE_TEST=ON \
       -DENABLE_GTK2_IM_MODULE=ON \
