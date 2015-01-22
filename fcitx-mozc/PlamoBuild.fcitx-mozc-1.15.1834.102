@@ -1,16 +1,30 @@
 #!/bin/sh
 ##############################################################
-url='https://github.com/martine/ninja/archive/v1.4.0.tar.gz'
+vers=1.15.1834.102
+#
+mozcrev=271
+gyprev=1950
+japanese_usage_dictionary_rev=10
+protobufver=2.5.0
+ziprel=201410
+patchver=${vers}.1
+#
+url=("http://mozc.googlecode.com/svn/trunk/src/@${mozcrev},mozc"
+     "http://japanese-usage-dictionary.googlecode.com/svn/trunk,japanese_usage_dictionary"
+     "http://gyp.googlecode.com/svn/trunk/@${gyprev},gyp"
+     "http://downloads.sourceforge.net/pnsft-aur/x-ken-all-${ziprel}.zip"
+     "http://downloads.sourceforge.net/pnsft-aur/jigyosyo-${ziprel}.zip"
+     "http://protobuf.googlecode.com/files/protobuf-${protobufver}.tar.bz2"
+     "http://download.fcitx-im.org/fcitx-mozc/fcitx-mozc-${patchver}.patch"
+     "http://download.fcitx-im.org/fcitx-mozc/fcitx-mozc-icon.tar.gz")
 verify=
-pkgbase=ninja
-vers=1.4.0
-commitid=
-arch=`uname -m | sed -e 's/i.86/i586/'`
+pkgbase=fcitx_mozc
+arch=`uname -m`
 build=P1
-src=ninja-1.4.0
+src=mozc
 OPT_CONFIG=''
-DOCS='COPYING HACKING.md README'
-patchfiles=''
+DOCS=''
+patchfiles="fcitx-mozc-${patchver}.patch"
 compress=txz
 ##############################################################
 
@@ -77,7 +91,7 @@ verify_checksum() {
   echo "Verify Checksum..."
   checksum_command=$1
   verify_file=${verify##*/}
-  for s in $url ; do
+  for s in ${url[@]} ; do
     srcsum=`$checksum_command ${s##*/}`
     verifysum=`grep ${s##*/} $verify_file`
     if [ x"$srcsum" != x"$verifysum" ]; then
@@ -128,7 +142,24 @@ else
   done
 fi
 if [ $opt_download -eq 1 ] ; then
-  for i in $url ; do
+  for i in ${url[@]} ; do
+    echo "=== get $i ==="
+    if ( echo $i | grep '/svn/' ) ; then
+      IFS=','
+      set -- $i
+      if [ ! -d $2 ] ; then
+        svn checkout "$1" "$2"
+      fi
+      continue
+    fi
+    if ( echo $i | grep '.git' ) ; then
+      IFS=','
+      set -- $i
+      if [ ! -d `basename ${1##*/} .git` ] ; then
+        git clone $1 && cd ${1##*/} && git reset --hard $2 && git set-file-times
+      fi
+      continue
+    fi
     case ${i##*.} in
     git)
       if [ ! -d `basename ${i##*/} .git` ] ; then
@@ -162,19 +193,25 @@ if [ $opt_download -eq 1 ] ; then
       echo "archive verify was successed."
     fi
   done
-  for i in $url ; do
+  for i in ${url[@]} ; do
+    if ( echo $i | grep '.git' ) ; then
+      continue
+    fi
+    if ( echo $i | grep '/svn/' ) ; then
+      continue
+    fi
     case ${i##*.} in
     gz) tar xvpzf ${i##*/} ;;
     bz2) tar xvpjf ${i##*/} ;;
-    git) ( cd `basename ${i##*/} .git`
-        git checkout origin/master
-        if [ -n "$commitid" ] ; then
-          git reset --hard $commitid
-        fi
-        git set-file-times ) ;;
+    zip) unzip -o ${i##*/} ;;
+    patch) true ;;
     *) tar xvpf ${i##*/} ;;
     esac
   done
+  #if [ ! -d gyp ]; then
+  #  svn checkout $gypurl gyp
+  #fi
+  #pushd gyp && svn update -r $gyprev
 fi
 
 if [ $opt_config -eq 1 ] ; then
@@ -187,15 +224,46 @@ if [ $opt_config -eq 1 ] ; then
 ######################################################################
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
+
+    rm unix/fcitx -rf
+
     for patch in $patchfiles ; do
-      patch -p1 < $W/$patch
+      #patch -p1 < $W/$patch
+      patch -Np2 < $W/$patch
     done
+
+    mkdir third_party/japanese_usage_dictionary
+    cp -a $W/japanese_usage_dictionary/* third_party/japanese_usage_dictionary
+
+    # copy gyp
+    mkdir third_party/gyp
+    cp -a $W/gyp/* third_party/gyp
+
+    # copy protobuf
+    mkdir third_party/protobuf
+    cp -a $W/protobuf-${protobufver}/* third_party/protobuf
+
   done
 fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    python ./bootstrap.py
+
+    python2 dictionary/gen_zip_code_seed.py --zip_code=$W/x-ken-all.csv --jigyosyo=$W/JIGYOSYO.CSV >> data/dictionary_oss/dictionary09.txt
+
+    export CFLAGS="-isystem /usr/include $target -I/usr/include/Qt -fvisibility=hidden"
+    export CXXFLAGS="-isystem /usr/include $target -I/usr/include/Qt -fvisibility=hidden"
+    export QTDIR=/usr
+    TARGETS="server/server.gyp:mozc_server gui/gui.gyp:mozc_tool unix/fcitx/fcitx.gyp:fcitx-mozc unix/emacs/emacs.gyp:mozc_emacs_helper"
+    #python build_mozc.py gyp --server_dir="/usr/${libdir}/mozc"
+    python build_mozc.py gyp
+    #python build_mozc.py build_tools -c Release
+    python build_mozc.py build -c Release ${TARGETS}
+
+    pushd unix/emacs
+    emacs -batch -f batch-byte-compile mozc.el
+    popd
+
   done
 fi
 if [ $opt_package -eq 1 ] ; then
@@ -210,7 +278,46 @@ if [ $opt_package -eq 1 ] ; then
   touch $W/i.st ; sleep 1
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    install -m755 -D ninja $P/usr/bin/ninja
+
+    OUTDIR="out_linux/Release"
+
+    # mozc
+    install -D -m 755 $OUTDIR/mozc_server $P/usr/${libdir}/mozc/mozc_server
+    install    -m 755 $OUTDIR/mozc_tool $P/usr/${libdir}/mozc/mozc_tool
+    install -d -m 755 $P/usr/${libdir}/mozc/documents/
+    install -m 644 data/installer/*.html $P/usr/${libdir}/mozc/documents/
+
+    # fcitx-mozc
+    for mofile in $OUTDIR/gen/unix/fcitx/po/*.mo
+    do
+      filename=`basename $mofile`
+      lang=${filename/.mo/}
+      install -D -m 644 "$mofile" "${pkgdir}/usr/share/locale/$lang/LC_MESSAGES/fcitx-mozc.mo"
+    done
+
+    install -D -m 755 $OUTDIR/fcitx-mozc.so "$P/usr/${libdir}/fcitx/fcitx-mozc.so"
+    install -D -m 644 unix/fcitx/fcitx-mozc.conf "$P/usr/share/fcitx/addon/fcitx-mozc.conf"
+    install -D -m 644 unix/fcitx/mozc.conf "$P/usr/share/fcitx/inputmethod/mozc.conf"
+
+    install -d "$P/usr/share/fcitx/mozc/icon"
+    install -m 644 "$W/fcitx-mozc-icons/mozc.png" "$P/usr/share/fcitx/mozc/icon/mozc.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-alpha_full.png" "$P/usr/share/fcitx/mozc/icon/mozc-alpha_full.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-alpha_half.png" "$P/usr/share/fcitx/mozc/icon/mozc-alpha_half.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-direct.png" "$P/usr/share/fcitx/mozc/icon/mozc-direct.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-hiragana.png" "$P/usr/share/fcitx/mozc/icon/mozc-hiragana.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-katakana_full.png" "$P/usr/share/fcitx/mozc/icon/mozc-katakana_full.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-katakana_half.png" "$P/usr/share/fcitx/mozc/icon/mozc-katakana_half.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-dictionary.png" "$P/usr/share/fcitx/mozc/icon/mozc-dictionary.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-properties.png" "$P/usr/share/fcitx/mozc/icon/mozc-properties.png"
+    install -m 644 "$W/fcitx-mozc-icons/mozc-tool.png" "$P/usr/share/fcitx/mozc/icon/mozc-tool.png"
+
+    #  emacs
+    install -D -m 755 $OUTDIR/mozc_emacs_helper $P/usr/bin/mozc_emacs_helper
+    install -d -m 755 $P/usr/share/emacs/site-lisp/emacs-mozc/
+    install -D -m 644 unix/emacs/mozc.el{,c} $P/usr/share/emacs/site-lisp/emacs-mozc/
+    install -D -m 644 $W/mozc-el_el $P/etc/template/Source/.emacs.d/site-start.d/mozc-el_el
+    install -D -m 644 $W/mozc-el_el $P/etc/template/Default/.emacs.d/site-start.d/mozc-el_el
+
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
