@@ -1,12 +1,11 @@
 #!/bin/sh
 ##############################################################
-url='http://www.python.jp/doc/contrib/mailman/_static/mailman-2.1.14+j7.tgz'
 pkgbase=mailman
-vers=2.1.14+j7
-arch=x86_64
-# arch=i586
+vers=2.1.20+j1
+url="http://mm.poem.co.jp/mailman-jp/src/mailman-${vers}.tgz"
+arch=`uname -m`
 build=P1
-src=mailman-2.1.14+j7
+src=mailman-${vers}
 OPT_CONFIG='--prefix=/usr/lib/mailman --with-var-prefix=/var/mailman --sysconfdir=/etc --with-cgi-gid=apache --mandir=/usr/share/man'
 DOCS='INSTALL NEWS README README-I18N.en README.CONTRIB README.NETSCAPE README.USERAGENT STYLEGUIDE.txt TODO gnu-COPYING-GPL'
 patchfiles=''
@@ -192,6 +191,7 @@ if [ $opt_download -eq 1 ] ; then
     tar) tar xvpf ${i##*/} ;;
     gz) tar xvpzf ${i##*/} ;;
     bz2) tar xvpjf ${i##*/} ;;
+    *) tar xvf ${i##*/} ;;
     esac
   done
 fi
@@ -214,13 +214,6 @@ if [ $opt_config -eq 1 ] ; then
     #   sh ./autogen.sh
     # fi
 
-    if [ ! -d /var/mailman ]; then
-      echo "mkdir /var/mailman"
-      mkdir -p /var/mailman 
-      chgrp mailman /var/mailman
-      chmod 02775 /var/mailman
-    fi
-
     grep mailman /etc/group
     if [ $? -ne 0 ]; then
       echo "groupadd mailman"
@@ -230,6 +223,13 @@ if [ $opt_config -eq 1 ] ; then
     if [ $? -ne 0 ]; then
       echo "useradd mailman"
       useradd -g mailman -u 500 -d /var/mailman -s /bin/false mailman
+    fi
+
+    if [ ! -d /var/mailman ]; then
+      echo "mkdir /var/mailman"
+      mkdir -p /var/mailman 
+      chgrp mailman /var/mailman
+      chmod 02775 /var/mailman
     fi
 
     if [ -x configure ] ; then
@@ -274,34 +274,21 @@ if [ $opt_package -eq 1 ] ; then
       make install DESTDIR=$P
       chgrp mailman $P/var/mailman
       chmod 02755 $P/var/mailman
+      rm -f $P/usr/lib/mailman/Mailman/mm_cfg.py
     fi
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
 ######################################################################
   mkdir -p $docdir/$src
-  if [ -d $P/usr/share/omf ]; then
-      mkdir -p $P/install
-      for omf in $P/usr/share/omf/* ; do
-	omf_name=`basename $omf`
-	cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/scrollkeeper-update ]; then
-    scrollkeeper-update -p /var/lib/rarian -o /usr/share/omf/$omf_name
-fi
+  mkdir -p $P/install
+  cat << EOF >> $P/install/initpkg
+chgrp mailman /var/mailman
+chmod 02775 /var/mailman
+#if [ ! -f /usr/lib/mailman/Mailman/mm_cfg.py ]; then
+#  cp /usr/lib/mailman/Mailman/mm_cfg.py.dist /usr/lib/mailman/Mailman/mm_cfg.py
+#fi
 EOF
-      done
-  fi
-
-  if [ -d $P/etc/gconf/schemas ]; then
-      mkdir -p $P/install
-      for schema in $P/etc/gconf/schemas/* ; do
-          cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/gconftool-2 ]; then
-    ( cd /etc/gconf/schemas ; GCONF_CONFIG_SOURCE=xml:merged:/etc/gconf/gconf.xml.defaults /usr/bin/gconftool-2 --makefile-install-rule `basename $schema` )
-fi
-EOF
-      done
-  fi
 
 # remove locales except ja
 # 
