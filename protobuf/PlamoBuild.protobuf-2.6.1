@@ -1,12 +1,12 @@
 #!/bin/sh
 ##############################################################
-url='https://protobuf.googlecode.com/svn/rc/protobuf-2.5.0.tar.bz2'
-sha1sum=''
 pkgbase=protobuf
-vers=2.5.0
-arch=`uname -m | sed -e 's/i.86/i586/'`
+vers=2.6.1
+url="https://github.com/google/protobuf/releases/download/v${vers}/protobuf-${vers}.tar.bz2"
+sha1sum=''
+arch=`uname -m`
 build=P1
-src=protobuf-2.5.0
+src=protobuf-${vers}
 OPT_CONFIG=''
 DOCS='CHANGES.txt CONTRIBUTORS.txt COPYING.txt INSTALL.txt README.txt'
 patchfiles=''
