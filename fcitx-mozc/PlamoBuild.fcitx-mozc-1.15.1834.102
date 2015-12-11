@@ -1,9 +1,9 @@
 #!/bin/sh
 ##############################################################
-vers=1.15.1834.102
+vers=1.15.1785.102
 #
-mozcrev=271
-gyprev=1950
+mozcrev=192
+gyprev=1828
 japanese_usage_dictionary_rev=10
 protobufver=2.5.0
 ziprel=201410
@@ -145,18 +145,16 @@ if [ $opt_download -eq 1 ] ; then
   for i in ${url[@]} ; do
     echo "=== get $i ==="
     if ( echo $i | grep '/svn/' ) ; then
-      IFS=','
-      set -- $i
-      if [ ! -d $2 ] ; then
-        svn checkout "$1" "$2"
+      ARR=( `echo $i | tr -s ',' ' ' ` )
+      if [ ! -d $ARR[1] ] ; then
+        svn checkout ${ARR[0]} ${ARR[1]}
       fi
       continue
     fi
     if ( echo $i | grep '.git' ) ; then
-      IFS=','
-      set -- $i
-      if [ ! -d `basename ${1##*/} .git` ] ; then
-        git clone $1 && cd ${1##*/} && git reset --hard $2 && git set-file-times
+      ARR=( `echo $i | tr -s ',' ' ' ` )
+      if [ ! -d `basename ${ARR[0]##*/} .git` ] ; then
+        git clone $1 && cd ${ARR[0]##*/} && git reset --hard $ARR[1] && git set-file-times
       fi
       continue
     fi
@@ -194,6 +192,7 @@ if [ $opt_download -eq 1 ] ; then
     fi
   done
   for i in ${url[@]} ; do
+    echo "=== Extract $i ==="
     if ( echo $i | grep '.git' ) ; then
       continue
     fi
@@ -255,9 +254,9 @@ if [ $opt_build -eq 1 ] ; then
     export CXXFLAGS="-isystem /usr/include $target -I/usr/include/Qt -fvisibility=hidden"
     export QTDIR=/usr
     TARGETS="server/server.gyp:mozc_server gui/gui.gyp:mozc_tool unix/fcitx/fcitx.gyp:fcitx-mozc unix/emacs/emacs.gyp:mozc_emacs_helper"
-    #python build_mozc.py gyp --server_dir="/usr/${libdir}/mozc"
-    python build_mozc.py gyp
-    #python build_mozc.py build_tools -c Release
+    # server_dir は /usr/lib/mozc 以外に mozc_server 等がインストールされる場合に必要そう (x86_64)
+    python build_mozc.py gyp --server_dir="/usr/${libdir}/mozc"
+    python build_mozc.py build_tools -c Release
     python build_mozc.py build -c Release ${TARGETS}
 
     pushd unix/emacs
