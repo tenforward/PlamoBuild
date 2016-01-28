@@ -3,11 +3,9 @@
 url='https://github.com/phatina/simple-mtpfs.git'
 verify=
 pkgbase=simple_mtpfs
-vers=git_20141106
-commitid=33bcca4
-# arch=x86_64
-# arch=i586
-arch=`uname -m | sed -e 's/i.86/i586/'`
+vers=git_20160128
+commitid=a7ab64c
+arch=`uname -m`
 build=P1
 src=simple-mtpfs
 OPT_CONFIG=''
