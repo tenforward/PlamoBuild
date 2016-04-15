@@ -1,8 +1,8 @@
 #!/bin/sh
 ##############################################################
 pkgbase=ninja
-vers=1.5.3
-url="https://github.com/martine/ninja/archive/v${vers}.tar.gz"
+vers=1.6.0
+url="https://github.com/ninja-build/ninja/archive/v${vers}.tar.gz"
 verify=
 commitid=
 arch=`uname -m`
