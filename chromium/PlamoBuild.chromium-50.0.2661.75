@@ -1,15 +1,15 @@
 #!/bin/sh
 ##############################################################
-url='http://commondatastorage.googleapis.com/chromium-browser-official/chromium-37.0.2062.94.tar.xz'
-#verify=$url.sig
 pkgbase=chromium
-vers=37.0.2062.94
-arch=`uname -m | sed -e 's/i.86/i586/'`
+vers=50.0.2661.75
+_launcher_ver=3
+url="http://commondatastorage.googleapis.com/chromium-browser-official/chromium-${vers}.tar.xz"
+arch=`uname -m`
 build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles=''
+patchfiles='ldflags.patch'
 compress=txz
 ##############################################################
 
@@ -180,74 +180,68 @@ if [ $opt_config -eq 1 ] ; then
        patch -p0 < $W/$patch
     done
 
-    #mkdir -p ../python2-path
-    #ln -sf /usr/bin/python ../python2-path
-
-    #sed -i '/nacl_test_data\.gyp/d' chrome/chrome_tests.gypi
-    #sed -i '/python_ver/s/2\.6/2\.7/' build/common.gypi 
     if [ $arch = "x86_64" ]; then
         sed -i "/system_libdir/s/'lib'/'lib64'/" build/common.gypi
     fi
+    sed -i "/'target_name': 'libvpx'/s/libvpx/&_new/" build/linux/unbundle/libvpx.gyp
+    touch chrome/test/data/webui/i18n_process_css_test.html
 
     chromium_conf=(
         -Dtarget_arch=$TARGETARCH
         -Dwerror=
         -Dclang=0
-        -Dclang_use_chrome_plugins=0
         -Ddisable_nacl=1
+	-Ddisable_pnacl=1
         -Dpython_ver=2.7
         -Dlinux_link_gsettings=1
         -Dlinux_link_libpci=1
-	-Dlinux_link_libspeechd=1
+	-Dlinux_link_libspeechd=0
         -Dlinux_link_pulseaudio=1
         -Dlinux_strip_binary=1
-        -Dlinux_use_gold_binary=0
+	-Dlinux_use_bundled_binutils=0
+	-Dlinux_use_bundled_gold=0
         -Dlinux_use_gold_flags=0
+	-Dlinux_use_data_file_flag=1
         -Dlogging_like_official_build=1
+	-Dtracing_like_official_build=1
+	-Dfieldtrial_testing_like_official_build=1
+	-Drelease_extra_cflags="$BUILDCFLAGS"
+	-Dldflags="$BUILDLDFLAGS"
         -Dlibspeechd_h_prefix=speech-dispatcher/
         -Dffmpeg_branding=Chrome
         -Dproprietary_codecs=1
+	-Duse_gnome_keyring=0
         -Duse_system_bzip2=1
         -Duse_system_flac=1
         -Duse_system_ffmpeg=0
         -Duse_system_harfbuzz=1
+	-Duse_system_icu=0
         -Duse_system_libevent=1
         -Duse_system_libjpeg=1
-        -Duse_system_libpng=0
+        -Duse_system_libpng=1
         -Duse_system_libxml=1
         -Duse_system_snappy=0
-        -Duse_system_ssl=0
         -Duse_system_xdg_utils=1
         -Duse_system_yasm=1
         -Duse_system_zlib=0
         -Duse_mojo=0
         -Duse_gconf=0
-        -Ddisable_glibc=1
-        -Dlinux_link_kerberos=1
-        -Dldflags="$BUILDLDFLAGS"
-        -Drelease_extra_cflags="$BUILDCFLAGS")
-#        -Duse_system_icu=0
-#        -Duse_system_webp=0
-#        -Duse_system_opus=0
-#        -Ddisable_pnacl=1
-#        -Dlinux_link_gnome_keyring=0
-#        -Dno_strict_aliasing=1
-#        -Duse_gnome_keyring=0
-#        -Duse_kerberos=1
-#        -Duse_system_libxslt=1
-#        -Dlinux_use_tcmalloc=0
+	-Duse_sysroot=0
+	-Denable_hangout_services_extension=1
+	-Denable_widevine=0
+	-Ddisable_fatal_linker_warnings=1
+	-Ddisable_glibc=1)
 
+    export LDFLAGS=$BUILDLDFLAGS
 
     build/linux/unbundle/replace_gyp_files.py "${chromium_conf[@]}"
-    #build/gyp_chromium -f make --depth=. "${chromium_conf[@]}"
     build/gyp_chromium --depth=. "${chromium_conf[@]}"
-
   done
 fi
 if [ $opt_build -eq 1 ] ; then
   for i in `seq 0 $((${#B[@]} - 1))` ; do
     cd ${B[$i]}
-    export CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS"
+    export CFLAGS="$BUILDCFLAGS" CXXFLAGS="$BUILDCFLAGS" LDFLAGS="$BUILDLDFLAGS"
     ninja -C out/Release chrome chrome_sandbox chromedriver
   done
 fi
@@ -266,14 +260,16 @@ if [ $opt_package -eq 1 ] ; then
 
     install -m 0755 -D out/Release/chrome $P/usr/${libdir}/chromium/chromium
     install -m4755 -o root -g root -D out/Release/chrome_sandbox $P/usr/${libdir}/chromium/chrome-sandbox
-    install -m0755 -D out/Release/libffmpegsumo.so $P/usr/${libdir}/chromium
+    install -D out/Release/chromedriver $P/usr/${libdir}/chromium/chromedriver
+    #install -m0755 -D out/Release/libffmpegsumo.so $P/usr/${libdir}/chromium
 
     cp out/Release/*.pak $P/usr/${libdir}/chromium/
+    cp out/Release/*.bin $P/usr/${libdir}/chromium/
     cp -a out/Release/locales $P/usr/${libdir}/chromium/
     cp out/Release/icudtl.dat $P/usr/${libdir}/chromium/
-    cp -a out/Release/resources $P/usr/${libdir}/chromium/
+    #cp -a out/Release/resources $P/usr/${libdir}/chromium/
+
     mkdir -p $P/usr/bin
-    #( cd $P/usr/${libdir}/chromium/ ; ln -s chromium ../../bin/chromium )
 
     install -m 644 -D out/Release/chrome.1 $P/usr/share/man/man1/chromium.1
 
@@ -289,6 +285,7 @@ if [ $opt_package -eq 1 ] ; then
             "$P/usr/share/icons/hicolor/${size}x${size}/apps/chromium.png"
     done
 
+    ln -s /usr/${libdir}/chromium/chromedriver $P/usr/bin/chromedriver
 
   done
 ######################################################################
@@ -304,10 +301,10 @@ CHROMIUM_FLAGS=\${CHROMIUM_USER_FLAGS:-\$CHROMIUM_FLAGS}
 
 exec /usr/${libdir}/chromium/chromium \$CHROMIUM_FLAGS "\$@"
 EOF
-chmod 755 $P/usr/bin/chromium
+  chmod 755 $P/usr/bin/chromium
 
-mkdir -p $P/etc/default
-cat <<EOF > $P/etc/default/chromium
+  mkdir -p $P/etc/default
+  cat <<EOF > $P/etc/default/chromium
 # Disable Seccomp-BPF Sandbox because of crash on Plamo-5.0 (x86_64)
 # --disable-seccomp-filter-sandbox option is refer to 
 #   http://code.google.com/p/chromium/wiki/LinuxSandboxing
@@ -316,40 +313,7 @@ CHROMIUM_FLAGS=""
 EOF
 
   mkdir -p $docdir/$src
-  if [ -d $P/usr/share/omf ]; then
-    mkdir -p $P/install
-    for omf in $P/usr/share/omf/* ; do
-      omf_name=`basename $omf`
-      cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/scrollkeeper-update ]; then
-  scrollkeeper-update -p /var/lib/rarian -o /usr/share/omf/$omf_name
-fi
-EOF
-    done
-  fi
-
-  if [ -d $P/etc/gconf/schemas ]; then
-    mkdir -p $P/install
-    for schema in $P/etc/gconf/schemas/* ; do
-      cat << EOF >> $P/install/initpkg
-if [ -x /usr/bin/gconftool-2 ]; then
-    ( cd /etc/gconf/schemas ; GCONF_CONFIG_SOURCE=xml:merged:/etc/gconf/gconf.xml.defaults /usr/bin/gconftool-2 --makefile-install-rule `basename $schema` )
-fi
-EOF
-    done
-  fi
-
-# remove locales except ja
-# 
-  for loc_dir in `find $P -name locale` ; do
-    pushd $loc_dir
-    for loc in * ; do
-      if [ "$loc" != "ja" ]; then
-        rm -rf $loc
-      fi
-    done
-    popd
-  done      
+  install -Dm644 LICENSE $docdir/$src/LICENSE
 
 ######################################################################
 # path に lib があるバイナリは strip -g, ないバイナリは strip する

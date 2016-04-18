@@ -1,0 +1,21 @@
+# https://bugs.chromium.org/p/chromium/issues/detail?id=535753
+--- chromium-50.0.2661.75/tools/gyp/pylib/gyp/generator/ninja.py	2016-04-14 06:01:44.000000000 +0900
++++ build/tools/gyp/pylib/gyp/generator/ninja.py	2016-04-18 17:59:01.814607970 +0900
+@@ -1165,7 +1165,7 @@
+       ldflags = self.xcode_settings.GetLdflags(config_name,
+           self.ExpandSpecial(generator_default_variables['PRODUCT_DIR']),
+           self.GypPathToNinja, arch)
+-      ldflags = env_ldflags + ldflags
++      ldflags = ldflags + env_ldflags
+     elif self.flavor == 'win':
+       manifest_base_name = self.GypPathToUniqueOutput(
+           self.ComputeOutputFileName(spec))
+@@ -1174,7 +1174,7 @@
+                                         self.ExpandSpecial, manifest_base_name,
+                                         output, is_executable,
+                                         self.toplevel_build)
+-      ldflags = env_ldflags + ldflags
++      ldflags = ldflags + env_ldflags 
+       self.WriteVariableList(ninja_file, 'manifests', manifest_files)
+       implicit_deps = implicit_deps.union(manifest_files)
+       if intermediate_manifest:
