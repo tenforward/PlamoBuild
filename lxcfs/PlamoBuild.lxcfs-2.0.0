@@ -1,13 +1,13 @@
 #!/bin/sh
 ##############################################################
 pkgbase=lxcfs
-vers=0.17
-url="https://github.com/lxc/lxcfs/archive/lxcfs-${vers}.tar.gz"
-verify=
+vers=2.0.0
+url="https://linuxcontainers.org/downloads/lxcfs/lxcfs-${vers}.tar.gz"
+verify=${url}.asc
 commitid=
 arch=`uname -m`
 build=P1
-src=lxcfs-lxcfs-${vers}
+src=lxcfs-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS COPYING ChangeLog NEWS README README.md'
 patchfiles=''
@@ -191,9 +191,9 @@ if [ $opt_config -eq 1 ] ; then
       patch -p1 < $W/$patch
     done
 
-    if [ -f bootstrap.sh ] ; then
-      sh ./bootstrap.sh
-    fi
+    #if [ -f bootstrap.sh ] ; then
+    #  sh ./bootstrap.sh
+    #fi
 
     if [ -x configure ] ; then
       export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
