@@ -224,6 +224,7 @@ if [ $opt_package -eq 1 ] ; then
     fi
     install -Dm644 nghttpx.conf.sample $P/etc/nghttpx/nghttpx.conf
     install -Dm644 contrib/nghttpx-logrotate $P/etc/logrotate.d/nghttpx
+    install -Dm644 $W/nghttpx.init $P/etc/rc.d/init.d/nghttpx
   done
 ######################################################################
 # * make install でコピーされないファイルがある場合はここに記述します。
