@@ -109,6 +109,12 @@ if [ $opt_package -eq 1 ] ; then
   install -D -m644 src/github.com/lxc/lxd/config/bash/lxd-client \
           $P/usr/share/bash-completion/completions/lxc
 
+  # initpkg
+  mkdir -p $P/install
+  cat > $P/install/initpkg <<EOF
+groupadd -f -r lxd
+EOF
+
 
 ################################
 #      install tweaks
