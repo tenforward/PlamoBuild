@@ -21,6 +21,10 @@ if test -e /var/lib/lxd/.setup_mode ; then
         ERR=1
     fi
     echo "done."
+
+    echo "Set images.linuxcontainers.org to remote."
+    lxc remote add images https://images.linuxcontainers.org
+
     if test $ERR -eq 0 ; then
        rm -f /var/lib/lxd/.setup_mode
     fi
