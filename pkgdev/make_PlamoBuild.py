@@ -34,10 +34,10 @@ def get_readmes(srcdir):
             if i.find(j) >= 0:
                 match = True
                 break
-                
+
         if match == False:
             newlist.append(i)
-                
+
     return newlist
 
 def get_patchfiles(srcdir):
@@ -69,7 +69,7 @@ def get_config_type(srcdir):
         elif file == 'Makefile.PL' :
             type = 'perl'
             break
-        
+
     if type == 'none' :
         print("cannot find proper configure methods.")
         print("PlamoBuild script is setup for configure, but you should adjust build script manually")
@@ -88,21 +88,21 @@ def get_basename_and_version(srcdir):
         version = parts[-1]
 
     return (basename, version)
-    
+
 def make_headers(url, srcdir, pkgbase, vers, readme, patchfiles, method):
     readme.sort()
     docs = " ".join(readme)
     patchs = " ".join(patchfiles)
-    
+
     if method == 'config' :
         header = '''#!/bin/sh
 ##############################################################
-url='{0}'
-pkgbase='{1}'
-vers='{2}'
+pkgbase="{1}"
+vers="{2}"
+url="{0}"
 arch=`uname -m`
 build=P1
-src='{3}'
+src="{1}-${{vers}}"
 OPT_CONFIG='--disable-static --enable-shared'
 DOCS='{4}'
 patchfiles='{5}'
@@ -112,12 +112,12 @@ compress=txz
     else:
         header = '''#!/bin/sh
 ##############################################################
-url='{0}'
-pkgbase='{1}'
-vers='{2}'
+pkgbase="{1}"
+vers="{2}"
+url="{0}"
 arch=`uname -m`
 build=P1
-src='{3}'
+src="{1}-${{vers}}"
 OPT_CONFIG=''
 DOCS='{4}'
 patchfiles='{5}'
