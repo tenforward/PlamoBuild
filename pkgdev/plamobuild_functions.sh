@@ -176,7 +176,7 @@ pkg=$pkgbase-$vers-$arch-$build
 
 if [ $arch = "x86_64" ]; then
     target="-m64"
-    libdir="lib"
+    libdir="lib64"
     suffix=""
 else
     target="-m32"
