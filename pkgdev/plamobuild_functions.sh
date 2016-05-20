@@ -162,14 +162,9 @@ install_tweak() {
 # set working directories
 
 W=`pwd`
-WD=/tmp
 for i in `seq 0 $((${#src[@]} - 1))` ; do
     S[$i]=$W/${src[$i]}
-    if [ $arch = "x86_64" ]; then
-        B[$i]=$WD/build`test ${#src[@]} -eq 1 || echo $i`
-    else
-        B[$i]=$WD/build32`test ${#src[@]} -eq 1 || echo $i`
-    fi
+    B[$i]=$W/build`test ${#src[@]} -eq 1 || echo $i`
 done
 P=$W/work ; C=$W/pivot
 infodir=$P/usr/share/info
