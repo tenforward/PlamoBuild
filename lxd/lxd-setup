@@ -1,0 +1,27 @@
+#!/bin/sh
+ERR=0
+
+test ! -r /etc/default/lxd-net || . /etc/default/lxd-net
+
+if test -e /var/lib/lxd/.setup_mode ; then
+    echo -n "Set default remote to local: "
+    lxc remote set-default local
+    if test $? -eq 0; then
+        echo "done."
+    else
+        echo "failed."
+        ERR=1
+    fi
+    echo -n "Set lxcbr0 as parent bridge to default profile: "
+    lxc profile device set default eth0 parent ${LXD_BRIDGE} --force-local
+    if test $? -eq 0; then
+        echo "done."
+    else
+        echo "failed."
+        ERR=1
+    fi
+    echo "done."
+    if test $ERR -eq 0 ; then
+       rm -f /var/lib/lxd/.setup_mode
+    fi
+fi

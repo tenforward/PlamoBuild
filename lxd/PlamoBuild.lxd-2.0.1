@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 ##############################################################
 pkgbase="lxd"
 vers="2.0.1"
@@ -96,14 +96,17 @@ if [ $opt_package -eq 1 ] ; then
   install -D -m755 bin/lxd-bridge-proxy $P/usr/${libdir}/lxd/lxd-bridge-proxy
 
   # message
-  install -D -m644 src/github.com/lxc/lxd/po/ja.mo /usr/share/locale/ja/LC_MESSAGES/lxd.mo
+  install -D -m644 src/github.com/lxc/lxd/po/ja.mo $P/usr/share/locale/ja/LC_MESSAGES/lxd.mo
 
   # directory
-  install -d /var/log/lxd
-  install -d /var/lib/lxd
+  install -d $P/var/log/lxd
+  install -d $P/var/lib/lxd
+  touch $P/var/lib/lxd/.setup_mode
 
   # init file
-  # copy worf.ten-forward.ws:/etc/init.d/lxd
+  install -D -m755 $W/lxd.init $P/etc/rc.d/init.d/lxd
+  install -D -m644 $W/lxd-default $P/etc/default/lxd-net
+  install -m755 $W/lxd-setup $P/usr/${libdir}/lxd/lxd-setup
 
   #
   install -D -m644 src/github.com/lxc/lxd/config/bash/lxd-client \
@@ -113,6 +116,7 @@ if [ $opt_package -eq 1 ] ; then
   mkdir -p $P/install
   cat > $P/install/initpkg <<EOF
 groupadd -f -r lxd
+usermod -v 100000-165536 -w 100000-165536 root
 EOF
 
 
