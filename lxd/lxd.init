@@ -42,7 +42,16 @@ case "$1" in
                 sleep 1
             done
 
-            ${DAEMON} waitready --timeout=30
+            if test -e /var/lib/lxd/.setup_mode ; then
+                lxd init --auto
+                sh /usr/${LIBDIR}/lxd/lxd-setup
+                rm -f /var/lib/lxd/.setup_mode
+                $0 stop
+                exec $0 start
+            else
+                ${DAEMON} waitready --timeout=30
+            fi
+
             echo "done."
         else
             if pgrep lxd >/dev/null 2>&1; then
@@ -54,10 +63,6 @@ case "$1" in
             fi
         fi
 
-        if test -e /var/lib/lxd/.setup_mode ; then
-            sh /usr/${LIBDIR}/lxd/lxd-setup
-            rm -f /var/lib/lxd/.setup_mode
-        fi
 
         exit 0
     ;;
