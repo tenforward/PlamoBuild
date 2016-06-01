@@ -52,6 +52,9 @@ case "$1" in
                 ${DAEMON} waitready --timeout=30
             fi
 
+            sleep 1
+            echo $(pgrep lxd) > $PIDFILE
+
             echo "done."
         else
             if pgrep lxd >/dev/null 2>&1; then
@@ -71,12 +74,13 @@ case "$1" in
         echo -n "Stopping $DESC: "
         killall ${DAEMON}
         if test $? -eq 0 ; then
+            rm -f $PIDFILE
             echo "done."
         else
             echo "failed."
-	    exit 1
+            exit 1
         fi
-	exit 0
+        exit 0
     ;;
 
     status)
