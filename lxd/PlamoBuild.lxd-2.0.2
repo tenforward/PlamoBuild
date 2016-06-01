@@ -101,7 +101,6 @@ if [ $opt_package -eq 1 ] ; then
   # directory
   install -d $P/var/log/lxd
   install -d $P/var/lib/lxd
-  touch $P/var/lib/lxd/.setup_mode
 
   # init file
   install -D -m755 $W/lxd.init $P/etc/rc.d/init.d/lxd
@@ -117,6 +116,11 @@ if [ $opt_package -eq 1 ] ; then
   cat > $P/install/initpkg <<EOF
 groupadd -f -r lxd
 usermod -v 100000-165536 -w 100000-165536 root
+if [ ! -f /var/lib/lxd/lxd.db ]; then
+  touch /var/lib/lxd/.setup_mode
+else
+  rm -f /var/lib/lxd/.setup_mode
+fi
 EOF
 
 

@@ -52,8 +52,7 @@ case "$1" in
                 ${DAEMON} waitready --timeout=30
             fi
 
-            sleep 1
-            echo $(pgrep lxd) > $PIDFILE
+            echo $(pgrep -f /usr/bin/lxd) > $PIDFILE
 
             echo "done."
         else
