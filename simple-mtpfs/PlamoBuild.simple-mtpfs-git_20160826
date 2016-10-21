@@ -3,14 +3,14 @@
 url='https://github.com/phatina/simple-mtpfs.git'
 verify=
 pkgbase=simple_mtpfs
-vers=git_20160128
-commitid=a7ab64c
+vers=git_20160826
+commitid=ea08fdb1299a2f53ac758f15c0377434ac0bbf89
 arch=`uname -m`
 build=P1
 src=simple-mtpfs
 OPT_CONFIG=''
 DOCS='AUTHORS COPYING ChangeLog INSTALL NEWS README.md'
-patchfiles=''
+patchfiles='no-reset.patch'
 compress=txz
 ##############################################################
 
