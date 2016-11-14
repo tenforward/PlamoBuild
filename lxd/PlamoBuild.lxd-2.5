@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="2.4.1"
+vers="2.5"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 arch=`uname -m`
 build=P1
@@ -91,10 +91,6 @@ if [ $opt_package -eq 1 ] ; then
   install -D -m755 bin/lxc $P/usr/bin/lxc
   install -D -m755 bin/fuidshift $P/usr/bin/fuidshift
 
-  # support binary
-  install -D -m755 $S/lxd-bridge/lxd-bridge $P/usr/${libdir}/lxd/lxd-bridge
-  install -D -m755 bin/lxd-bridge-proxy $P/usr/${libdir}/lxd/lxd-bridge-proxy
-
   # message
   install -D -m644 src/github.com/lxc/lxd/po/ja.mo $P/usr/share/locale/ja/LC_MESSAGES/lxd.mo
 
@@ -104,8 +100,6 @@ if [ $opt_package -eq 1 ] ; then
 
   # init file
   install -D -m755 $W/lxd.init $P/etc/rc.d/init.d/lxd
-  install -D -m644 $W/lxd-default $P/etc/default/lxd-net
-  install -m755 $W/lxd-setup $P/usr/${libdir}/lxd/lxd-setup
 
   #
   install -D -m644 src/github.com/lxc/lxd/config/bash/lxd-client \
@@ -116,11 +110,6 @@ if [ $opt_package -eq 1 ] ; then
   cat > $P/install/initpkg <<EOF
 groupadd -f -r lxd
 usermod -v 100000-165536 -w 100000-165536 root
-if [ ! -f /var/lib/lxd/lxd.db ]; then
-  touch /var/lib/lxd/.setup_mode
-else
-  rm -f /var/lib/lxd/.setup_mode
-fi
 EOF
 
 

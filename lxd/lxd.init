@@ -16,6 +16,7 @@ DESC="Container hypervisor based on LXC"
 PIDFILE=/var/run/lxd.pid
 LIBDIR=
 ARCH=`uname -m`
+
 if test $ARCH = "x86_64" ; then
     LIBDIR=lib64
 else
@@ -30,66 +31,58 @@ set -e
 
 case "$1" in
     start)
-        echo -n "Starting $DESC: "
-        ulimit -n 65536
-        [ -e /etc/environment ] && . /etc/environment
-        ${DAEMON} --group lxd --logfile=/var/log/lxd/lxd.log > /dev/null 2>&1 &
-        if test $? -eq 0; then
 
-            # Wait for the unix socket
-            for i in $(seq 30); do
-                lxc finger --force-local >/dev/null 2>&1 && break
-                sleep 1
-            done
-
-            if test -e /var/lib/lxd/.setup_mode ; then
-                lxd init --auto
-                sh /usr/${LIBDIR}/lxd/lxd-setup
-                rm -f /var/lib/lxd/.setup_mode
-                $0 stop
-                exec $0 start
-            else
-                ${DAEMON} waitready --timeout=30
-            fi
-
-            echo $(pgrep -f /usr/bin/lxd) > $PIDFILE
-
-            echo "done."
+        if pgrep -f ${DAEMON} >/dev/null 2>&1; then
+            echo "${NAME} is already running."
+            exit 0
         else
-            if pgrep lxd >/dev/null 2>&1; then
-                echo "(failed)."
-                exit 1
+            echo -n "Starting $DESC: "
+            ulimit -n 65536
+
+            [ -e /etc/environment ] && . /etc/environment
+
+            ${DAEMON} --group lxd --logfile=/var/log/lxd/lxd.log >/dev/null 2>&1 &
+
+            if pgrep -f ${DAEMON} >/dev/null 2>&1; then
+                ${DAEMON} waitready --timeout=600
+                echo "done."
             else
-                echo "${DAEMON} already running."
-                exit 0
+                echo "failed."
+                exit 1
             fi
         fi
 
+        echo $(pgrep -f ${DAEMON}) > $PIDFILE
 
         exit 0
     ;;
 
     stop)
-        echo -n "Stopping $DESC: "
-        killall ${DAEMON}
-        if test $? -eq 0 ; then
-            rm -f $PIDFILE
-            echo "done."
+        if pgrep -f ${DAEMON} >/dev/null 2>&1; then
+            echo -n "Stopping $DESC: "
+            ${DAEMON} shutdown
+            if test $? -eq 0 ; then
+                rm -f $PIDFILE
+                echo "done."
+            else
+              echo "(failed)."
+              exit 1
+            fi
         else
-            echo "failed."
-            exit 1
+            echo "${NAME} is NOT running."
         fi
         exit 0
     ;;
 
     status)
-        pgrep ${NAME} > /dev/null 2>&1
-        if test $? -eq 0 ; then
+        if pgrep -f ${DAEMON} > /dev/null 2>&1 ; then
             echo "${NAME} is running."
         else
             echo "${NAME} is NOT running."
             exit 1
         fi
+
+        exit 0
     ;;
 
     restart|force-reload)
