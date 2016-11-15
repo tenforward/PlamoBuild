@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 ##############################################################
 pkgbase=spotify_client
 vers=1.0.42.151
@@ -145,6 +145,15 @@ if [ $opt_package -eq 1 ] ; then
   fi
   tar xvf data.tar.gz -C $P
   ( cd $docdir ; mv spotify-client $src )
+  install -d $P/usr/share/applications
+  ln -sf /usr/share/spotify/spotify.desktop $P/usr/share/applications
+  install -d $P/usr/share/icons/hicolor
+  for size in "16" "22" "24" "36" "64" "128" "256"
+  do
+    dir="$P"/usr/share/icons/hicolor/"$size"x"$size"/apps
+    mkdir -p $dir
+    ln -sf /usr/share/spotify/icons/spotify-linux-$size.png $dir/apps/
+  done
 
 ######################################################################
 # * compress 対象以外で圧縮したいディレクトリやファイルがある場合はここ
