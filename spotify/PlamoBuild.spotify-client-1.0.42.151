@@ -152,7 +152,7 @@ if [ $opt_package -eq 1 ] ; then
   do
     dir="$P"/usr/share/icons/hicolor/"$size"x"$size"/apps
     mkdir -p $dir
-    ln -sf /usr/share/spotify/icons/spotify-linux-$size.png $dir/apps/
+    ln -sf /usr/share/spotify/icons/spotify-linux-$size.png $dir/spotify-client.png
   done
 
 ######################################################################
