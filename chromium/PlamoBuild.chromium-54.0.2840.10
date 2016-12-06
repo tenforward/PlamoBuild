@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase=chromium
-vers=50.0.2661.75
+vers=54.0.2840.100
 _launcher_ver=3
 url="http://commondatastorage.googleapis.com/chromium-browser-official/chromium-${vers}.tar.xz"
 arch=`uname -m`
@@ -9,7 +9,7 @@ build=P1
 src=chromium-${vers}
 OPT_CONFIG=''
 DOCS='AUTHORS LICENSE LICENSE.chromium_os'
-patchfiles='ldflags.patch'
+patchfiles=''
 compress=txz
 ##############################################################
 
