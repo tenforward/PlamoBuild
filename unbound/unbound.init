@@ -18,8 +18,8 @@ start()
 
 status()
 {
-  chk=$( pgrep $DAEMON )
-  if [ "$chk.x" != ".x" ]; then
+  pgrep $DAEMON > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
       return 0
   else
       return 1
