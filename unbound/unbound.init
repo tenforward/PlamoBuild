@@ -7,7 +7,7 @@
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DESC="unbound"
 NAME="unbound"
-DAEMON="unbound"
+DAEMON="/usr/sbin/unbound"
 PIDFILE="/var/run/unbound.pid"
 
 start()
@@ -19,11 +19,6 @@ start()
 status()
 {
   pgrep $DAEMON > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
-      return 0
-  else
-      return 1
-  fi
 }
 
 stop()
