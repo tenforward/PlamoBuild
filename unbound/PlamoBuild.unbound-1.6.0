@@ -4,7 +4,7 @@ pkgbase='unbound'
 vers='1.6.0'
 url="http://www.unbound.net/downloads/unbound-${vers}.tar.gz"
 arch=`uname -m`
-build=P2
+build=P3
 src="${pkgbase}-${vers}"
 OPT_CONFIG="--disable-static --with-pidfile=/var/run/unbound.pid"
 DOCS='LICENSE README'
