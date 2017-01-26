@@ -1,16 +1,17 @@
 #!/bin/sh
 ##############################################################
-url='https://github.com/phatina/simple-mtpfs.git'
-verify=
 pkgbase=simple_mtpfs
-vers=git_20160826
+vers=0.3.0
+#url='https://github.com/phatina/simple-mtpfs.git'
+url="https://github.com/phatina/simple-mtpfs/archive/simple-mtpfs-${vers}.tar.gz"
+verify=
 commitid=ea08fdb1299a2f53ac758f15c0377434ac0bbf89
 arch=`uname -m`
 build=P1
-src=simple-mtpfs
+src=simple-mtpfs-simple-mtpfs-0.3.0/
 OPT_CONFIG=''
 DOCS='AUTHORS COPYING ChangeLog INSTALL NEWS README.md'
-patchfiles='no-reset.patch'
+patchfiles=''
 compress=txz
 ##############################################################
 
