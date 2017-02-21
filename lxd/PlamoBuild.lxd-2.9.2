@@ -1,14 +1,14 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="2.7"
+vers="2.9.2"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 arch=`uname -m`
 build=P1
 src="lxd-${vers}"
 OPT_CONFIG='--disable-static --enable-shared'
 DOCS='AUTHORS COPYING README.md CONTRIBUTING.md'
-patchfiles=''
+patchfiles=
 compress=txz
 ##############################################################
 
@@ -36,11 +36,16 @@ if [ $opt_config -eq 1 ] ; then
 ######################################################################
 #  copy sources into build directory, patch and make in the build dir
 ######################################################################
-    cd $B
-    for patch in $patchfiles ; do
-       patch -p1 < $W/$patch
-    done
 
+    cd $S
+    if [ ! -f .patched ]; then
+      for patch in $patchfiles ; do
+        patch -p1 < $W/$patch
+      done
+    fi
+    touch .patched
+
+    cd $B
     # put in the stuff under the GOPATH under the golang rule
     if [ -d src/github.com/lxc/lxd ]; then
         rm -rf src/github.com/lxc/lxd
