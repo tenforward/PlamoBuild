@@ -1,17 +1,17 @@
 #!/bin/sh
 ##############################################################
 pkgbase=spotify_client
-vers=1.0.42.151
+vers=1.0.52.717
 arch=`uname -m`
 if [ $arch = "x86_64" ]; then
   pkgarch="amd64"
 elif [ $arch = "i686" ]; then
   pkgarch="i386"
 fi
-url="http://repository-origin.spotify.com/pool/non-free/s/spotify-client/spotify-client_1.0.42.151.g19de0aa6-74_${pkgarch}.deb"
+url="http://repository-origin.spotify.com/pool/non-free/s/spotify-client/spotify-client_1.0.52.717.g2f08534a-47_${pkgarch}.deb"
 commitid=
 build=P1
-src=spotify-client-1.0.42.151
+src=spotify-client-${vers}
 OPT_CONFIG=''
 DOCS=''
 patchfiles=''
