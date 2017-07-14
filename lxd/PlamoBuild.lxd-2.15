@@ -12,7 +12,8 @@ patchfiles=
 compress=txz
 ##############################################################
 
-source /usr/lib/setup/plamobuild_functions.sh
+#source /usr/lib/setup/plamobuild_functions.sh
+source /usr/share/plamobuild_functions.sh
 
 if [ $# -eq 0 ] ; then
   opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
