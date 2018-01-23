@@ -2,11 +2,11 @@
 ##############################################################
 pkgbase=sysbench
 vers=0.4.12
-url="https://github.com/akopytov/sysbench.git"
+url="http://http.debian.net/debian/pool/main/s/sysbench/sysbench_0.4.12.orig.tar.gz"
 commitid=
 arch=`uname -m`
 build=P1
-src=sysbench
+src="${pkgbase}-${vers}"
 OPT_CONFIG='--disable-static'
 DOCS='COPYING ChangeLog INSTALL README README-WIN.txt TODO'
 patchfiles=''
@@ -125,9 +125,9 @@ if [ $opt_download -eq 1 ] ; then
     *)
       if [ ! -f ${i##*/} ] ; then
         wget $i
-        for sig in asc sig{,n} {md5,sha{1,256}}{,sum} ; do
-          if wget --spider $i.$sig ; then wget $i.$sig ; break ; fi
-        done
+        #for sig in asc sig{,n} {md5,sha{1,256}}{,sum} ; do
+        #  if wget --spider $i.$sig ; then wget $i.$sig ; break ; fi
+        #done
         if [ -f ${i##*/}.$sig ] ; then
           case $sig in
           asc|sig) gpg2 --verify ${i##*/}.$sig ;;
@@ -169,21 +169,22 @@ if [ $opt_config -eq 1 ] ; then
       patch -p1 < $W/$patch
     done
 
-    if [ -f autogen.sh ] ; then
-      sh ./autogen.sh
-    fi
+    #if [ -f autogen.sh ] ; then
+    #  sh ./autogen.sh
+    #fi
 
     if [ -x configure ] ; then
       export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
-      export LDFLAGS='-Wl,--as-needed' 
-      export CC="gcc -isystem /usr/include $target" 
-      export CPPFLAGS="-isystem /usr/include $target "
+      #export LDFLAGS='-Wl,--as-needed' 
+      #export CFLAGS="-isystem /usr/include $target" 
+      #export CPPFLAGS="-isystem /usr/include $target "
       ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG[$i]}
     fi
     if [ $? != 0 ]; then
       echo "configure error. $0 script stop"
       exit 255
     fi
+    sed -i 's|ECHO=|echo=|' $B/libtool
   done
 fi
 if [ $opt_build -eq 1 ] ; then
