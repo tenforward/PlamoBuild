@@ -35,6 +35,7 @@ if [ "${plamo_major_version}" != "7" ]; then
   ln -s ../${libdir}/slack/slack $P/usr/bin/slack
 else
   rpmextract ../${url##*/}
+  rm -rfv $P/etc
 fi
 
 makepkg ../${pkgbase}-${vers}-${arch}-${build}.txz <<EOF
