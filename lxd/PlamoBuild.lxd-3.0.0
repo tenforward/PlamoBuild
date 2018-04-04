@@ -1,13 +1,14 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="2.21"
+vers="3.0.0"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
+verify="${url}.asc"
 arch=`uname -m`
 build=P1
 src="lxd-${vers}"
 OPT_CONFIG='--disable-static --enable-shared'
-DOCS='AUTHORS COPYING README.md CONTRIBUTING.md'
+DOCS='AUTHORS COPYING'
 patchfiles=
 compress=txz
 ##############################################################
@@ -117,6 +118,19 @@ if [ $opt_package -eq 1 ] ; then
 groupadd -f -r lxd
 usermod -v 100000-165536 -w 100000-165536 root
 EOF
+
+  for i in $(seq 0 6)
+  do
+      install -dm755 -v $P/etc/rc.d/rc"$i".d
+      case $i in
+	  0|1|2|6)
+	      ln -sfv ../init.d/lxd $P/etc/rc.d/rc"$i".d/K01lxd
+	      ;;
+	  3|4|5)
+	      ln -sfv ../init.d/lxd $P/etc/rc.d/rc"$i".d/S99lxd
+	      ;;
+      esac
+  done
 
 
 ################################
