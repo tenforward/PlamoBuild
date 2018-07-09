@@ -1,97 +1,52 @@
-#! /bin/sh
+#!/bin/sh
 
 ### BEGIN INIT INFO
-# Short-Description:    Container hypervisor based on LXC
-# Description:          Container hypervisor based on LXC
-# Provides:             lxd
-# Required-Start:       $remote_fs
-# Required-Stop:        $remote_fs
-# Default-Start:        2 3 4 5
-# Default-Stop:         0 1 6
+# Provides: 
+# Required-Start:
+# Should-Start:
+# Required-Stop:
+# Should-Stop:
+# Default-Start:	3 4 5
+# Default-Stop:	0 1 2 6
+# Short-Description:	Container hypervisor based on LXC
+# Description:		Container hypervisor based on LXC
+# X-LFS-Provided-By:
 ### END INIT INFO
 
+. /lib/lsb/init-functions
+
 DAEMON=/usr/bin/lxd
-NAME=lxd
-DESC="Container hypervisor based on LXC"
-PIDFILE=/var/run/lxd.pid
-LIBDIR=
-ARCH=`uname -m`
+ARGS="--group lxd --logfile=/var/log/lxd/lxd.log > /dev/null 2>&1 &"
+PIDFILE=/run/lxd.pid
 
-if test $ARCH = "x86_64" ; then
-    LIBDIR=lib64
-else
-    LIBDIR=lib
-fi
+case "${1}" in
+   start)
+      log_info_msg "Starting..."
+      start_daemon $DAEMON $ARGS
+      if pgrep -f $DAEMON > /dev/null 2>&1; then
+	  $DAEMON waitready --timeout=600
+      fi
+      evaluate_retval
+      ;;
 
-test ! -r /lib/lsb/init-functions || . /lib/lsb/init-functions
+   stop)
+      log_info_msg "Stopping..."
+      $DAEMON shutdown
+      evaluate_retval
+      ;;
 
-test -f ${DAEMON} || exit 0
+   restart)
+      ${0} stop
+      sleep 1
+      ${0} start
+      ;;
 
-set -e
-
-case "$1" in
-    start)
-
-        if pgrep -f ${DAEMON} >/dev/null 2>&1; then
-            echo "${NAME} is already running."
-            exit 0
-        else
-            echo -n "Starting $DESC: "
-            ulimit -n 65536
-
-            [ -e /etc/environment ] && . /etc/environment
-
-            ${DAEMON} --group lxd --logfile=/var/log/lxd/lxd.log >/dev/null 2>&1 &
-
-            if pgrep -f ${DAEMON} >/dev/null 2>&1; then
-                ${DAEMON} waitready --timeout=600
-                echo "done."
-            else
-                echo "failed."
-                exit 1
-            fi
-        fi
-
-        echo $(pgrep -f ${DAEMON}) > $PIDFILE
-
-        exit 0
-    ;;
-
-    stop)
-        if pgrep -f ${DAEMON} >/dev/null 2>&1; then
-            echo -n "Stopping $DESC: "
-            ${DAEMON} shutdown
-            if test $? -eq 0 ; then
-                rm -f $PIDFILE
-                echo "done."
-            else
-              echo "(failed)."
-              exit 1
-            fi
-        else
-            echo "${NAME} is NOT running."
-        fi
-        exit 0
-    ;;
-
-    status)
-        if pgrep -f ${DAEMON} > /dev/null 2>&1 ; then
-            echo "${NAME} is running."
-        else
-            echo "${NAME} is NOT running."
-            exit 1
-        fi
-
-        exit 0
-    ;;
-
-    restart|force-reload)
-        $0 stop
-        exec $0 start
-    ;;
-
-    *)
-        echo "Usage: $0 {start|stop|restart|force-reload}" 1>&2
-        exit 1
-    ;;
+   *)
+      echo "Usage: ${0} {start|stop|restart}"
+      exit 1
+      ;;
 esac
+
+exit 0
+
+# End scriptname
