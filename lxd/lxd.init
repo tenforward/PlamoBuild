@@ -16,13 +16,13 @@
 . /lib/lsb/init-functions
 
 DAEMON=/usr/bin/lxd
-ARGS="--group lxd --logfile=/var/log/lxd/lxd.log > /dev/null 2>&1 &"
+ARGS="--group lxd --logfile=/var/log/lxd/lxd.log"
 PIDFILE=/run/lxd.pid
 
 case "${1}" in
    start)
       log_info_msg "Starting..."
-      start_daemon $DAEMON $ARGS
+      $DAEMON $ARGS > /dev/null 2>&1 &
       if pgrep -f $DAEMON > /dev/null 2>&1; then
 	  $DAEMON waitready --timeout=600
       fi
