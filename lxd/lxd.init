@@ -18,22 +18,23 @@
 DAEMON=/usr/bin/lxd
 ARGS="--group lxd --logfile=/var/log/lxd/lxd.log"
 PIDFILE=/run/lxd.pid
+export LD_LIBRARY_PATH="/usr/lib/lxd" \
 
 case "${1}" in
    start)
-      log_info_msg "Starting..."
-      $DAEMON $ARGS > /dev/null 2>&1 &
-      if pgrep -f $DAEMON > /dev/null 2>&1; then
-	  $DAEMON waitready --timeout=600
-      fi
-      evaluate_retval
-      ;;
+     log_info_msg "Starting..."
+     $DAEMON $ARGS > /dev/null 2>&1 &
+     if pgrep -f $DAEMON > /dev/null 2>&1; then
+       $DAEMON waitready --timeout=600
+     fi
+     evaluate_retval
+     ;;
 
    stop)
-      log_info_msg "Stopping..."
-      $DAEMON shutdown
-      evaluate_retval
-      ;;
+     log_info_msg "Stopping..."
+     $DAEMON shutdown
+     evaluate_retval
+     ;;
 
    restart)
       ${0} stop
