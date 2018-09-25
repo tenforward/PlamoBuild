@@ -1,8 +1,8 @@
 #!/bin/sh
 ##############################################################
 pkgbase='spotify_client'
-vers='1.0.70.399'
-_rev="g5ffabd56-26"
+vers="1.0.89.313"
+_rev="g34a58dea-5"
 arch=$(uname -m)
 if [ $arch = "x86_64" ]; then
   pkgarch="amd64"
