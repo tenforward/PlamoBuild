@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase=fio
-vers=2.18
+vers=3.11
 url="https://github.com/axboe/fio/archive/fio-${vers}.tar.gz"
 verify=
 commitid=
