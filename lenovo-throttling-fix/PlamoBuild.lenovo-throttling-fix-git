@@ -1,0 +1,100 @@
+#!/bin/sh
+##############################################################
+pkgbase="lenovo_throttling_fix"
+vers=""
+url="https://github.com/erpalma/lenovo-throttling-fix.git"
+verify=""
+digest=""
+arch=`uname -m`
+build=B1
+src="lenovo-throttling-fix"
+OPT_CONFIG=""
+DOCS="LICENSE README.md requirements.txt"
+patchfiles=""
+compress=txz
+##############################################################
+
+source /usr/share/plamobuild_functions.sh
+
+# このスクリプトで使う1文字変数の意味
+#
+# $W : このスクリプトを動かすカレントディレクトリ
+# $S : ソースコードのあるディレクトリ(デフォルト: $W/${src})
+# $B : ビルド用ディレクトリ(デフォルト: /tmp/build)
+# $P : ビルドしたファイルをインストールするディレクトリ（デフォルト: $W/work)
+
+if [ $# -eq 0 ] ; then
+  opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
+else
+  opt_download=0 ; opt_config=0 ; opt_build=0 ; opt_package=0
+  for i in $@ ; do
+    case $i in
+    download) opt_download=1 ;;
+    config) opt_config=1 ;;
+    build) opt_build=1 ;;
+    package) opt_package=1 ;;
+    esac
+  done
+fi
+
+###
+#version = date.commitid
+###
+if [ $opt_download -ne 1 ]; then
+    pushd $S
+    vers=$(TZ=UTC git show -s --pretty=%cd --date=format-local:%Y%m%d HEAD).$(git rev-parse --short HEAD)
+    pkg=${pkgbase}-${vers}-${arch}-${build}
+    popd
+fi
+
+if [ $opt_download -eq 1 ] ; then
+    download_sources
+fi
+
+if [ $opt_config -eq 1 ] ; then
+    echo "There is nothing to do in config section."
+fi
+
+if [ $opt_build -eq 1 ] ; then
+    echo "There is nothing to do in build section."
+fi
+
+if [ $opt_package -eq 1 ] ; then
+  check_root
+  if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
+  cd $S
+
+  install -Dm644 -v etc/lenovo_fix.conf $P/etc/lenovo_fix.conf.dist
+  install -dm755 -v $P/opt/lenovo_fix
+  install -Dm755 -v lenovo_fix.py $P/opt/lenovo_fix/lenovo_fix.py
+  install -Dm755 -v mmio.py $P/opt/lenovo_fix/mmio.py
+
+  mkdir -p $P/install
+  cat <<EOF >> $P/install/initpkg
+if [ ! -f /etc/lenovo_fix.conf ]; then
+   ( cd /etc
+     cp -v lenovo_fix.conf.dist lenovo_fix.conf
+   )
+fi
+EOF
+
+################################
+#      install tweaks
+#  strip binaries, delete locale except ja, compress man,
+#  install docs and patches, compress them and  chown root.root
+################################
+  install_tweak
+
+#############################
+#   convert symlink to null file and
+#   add "ln -sf" command into install/doinst.sh
+################################
+  convert_links
+
+  cd $P
+  /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+fi
