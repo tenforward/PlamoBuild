@@ -143,13 +143,16 @@ EOF
       esac
   done
 
+  install -D -dm755 -v $docdir/$src
+
+  cd $W
 
 ################################
 #      install tweaks
 #  strip binaries, delete locale except ja, compress man, 
 #  install docs and patches, compress them and  chown root.root
 ################################
-    install_tweak
+  install_tweak
 
   cd $P
   /sbin/makepkg ../$pkg.$compress <<EOF
