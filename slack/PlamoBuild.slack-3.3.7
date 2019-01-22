@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 pkgbase=slack
-vers=3.0.5_0.1
+vers=3.3.7_0.1
 build=P1
 arch=$(uname -m)
 url="https://downloads.slack-edge.com/linux_releases/slack-${vers/_/-}.fc21.x86_64.rpm"
@@ -13,7 +13,7 @@ if [ ! -f ${rpm} ]; then
   wget $url
 fi
 
-if [ "$arch" = "x86_64" -a "$plamo_major_version}" != "7"]; then
+if [ "$arch" = "x86_64" -a "${plamo_major_version}" != "7"]; then
   libdir="lib64"
 else
   libdir="lib"
@@ -26,17 +26,10 @@ fi
 rm -rf $P/*
 
 pushd $P
-if [ "${plamo_major_version}" != "7" ]; then
-  pushd $P
-  rpm2cpio ../${url##*/} | cpio -ivd
-  mv -v $P/usr/lib $P/usr/${libdir}
-  rm -vrf $P/etc
-  rm -vf $P/usr/bin/slack
-  ln -s ../${libdir}/slack/slack $P/usr/bin/slack
-else
-  rpmextract ../${url##*/}
-  rm -rfv $P/etc
-fi
+rpm2cpio ../${url##*/} | cpio -ivd
+rm -vrf $P/etc
+rm -vf $P/usr/bin/slack
+ln -s ../${libdir}/slack/slack $P/usr/bin/slack
 
 makepkg ../${pkgbase}-${vers}-${arch}-${build}.txz <<EOF
 y
