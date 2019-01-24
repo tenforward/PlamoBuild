@@ -7,11 +7,21 @@ verify=""
 arch=`uname -m`
 build=B1
 src="${pkgbase}-${vers}"
-OPT_CONFIG='--disable-static --enable-shared'
+OPT_CONFIG="--prefix=/usr/lib/mailman
+	--without-permcheck
+	--with-var-prefix=/var/lib/mailman
+	--with-cgi-gid=apache
+	--with-mail-gid=mailman
+	--with-username=mailman
+	--with-groupname=mailman
+	--with-python=/usr/bin/python2"
 DOCS='INSTALL NEWS NEWS.japan.utf-8 README README-I18N.en README.CONTRIB README.NETSCAPE README.USERAGENT README.japan.utf-8 STYLEGUIDE.txt TODO gnu-COPYING-GPL'
 patchfiles=''
 compress=txz
 ##############################################################
+
+MAILMAN_GID=502
+MAILMAN_UID=502
 
 source /usr/share/plamobuild_functions.sh
 
@@ -41,22 +51,18 @@ if [ $opt_download -eq 1 ] ; then
 fi
 
 if [ $opt_config -eq 1 ] ; then
-  if [ -d $B ] ; then rm -rf $B ; fi ; mkdir -p $B 
+  if [ -d $B ] ; then rm -rf $B ; fi ; cp -a $S $B
 ######################################################################
 #  don't copy sources, so need patch in the src dir
 ######################################################################
-  cd $S
-  for patch in $patchfiles ; do
-    if [ ! -f .${patch} ]; then
-      patch -p1 < $W/$patch
-      touch .${patch}
-    fi
-  done
-  # if [ -f autogen.sh ] ; then
-  #   sh ./autogen.sh
-  # fi
-
   cd $B
+  for patch in $patchfiles ; do
+    patch -p1 < $W/$patch
+  done
+
+  find . -type f -exec \
+    sed -i '1s,^#! \?/usr/bin/\(env \|\)python$,#!/usr/bin/python2,' {} \;
+
   export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig:/opt/kde/${libdir}/pkgconfig
   export LDFLAGS='-Wl,--as-needed' 
   $S/configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG}
@@ -83,6 +89,28 @@ if [ $opt_package -eq 1 ] ; then
   cd $B
   export LDFLAGS='-Wl,--as-needed'
   make install DESTDIR=$P
+
+  install -d -m755 -v $P/etc/mailman
+  ln -sv /usr/lib/mailman/Mailman/mm_cfg.py "$P/etc/mailman/mm_cfg.py"
+  chown -R "$MAILMAN_UID":"$MAILMAN_GID" "$P"/{usr/lib/mailman,var/lib/mailman,etc/mailman/*}
+  chown www:"$MAILMAN_GID" "$P"/var/lib/mailman/archives/private
+  chmod 2770 "$P"/var/lib/mailman/archives/private
+  chmod 2755 "$P"/usr/lib/mailman/cgi-bin/*
+  chmod 2755 "$P"/usr/lib/mailman/mail/mailman
+
+  install -Dm 755 $W/mailman.profile.sh "$P/etc/profile.d/mailman.sh"
+
+  mkdir -p $P/install
+  cat <<EOF >> $P/install/initpkg
+
+if ! grep mailman /etc/passwd > /dev/null 2>&1 ; then
+  groupadd -g $MAILMAN_GID mailman
+  useradd -u $MAILMAN_UID -g $MAILMAN_GID -d /var/lib/mailman mailman
+fi
+
+/usr/lib/mailman/bin/check_perms -f
+
+EOF
 
 ################################
 #      install tweaks

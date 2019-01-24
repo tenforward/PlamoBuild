@@ -3,7 +3,7 @@
 pkgbase='dnspython'
 vers='1.15.0'
 url="http://www.${pkgbase}.org/kits/${vers}/${pkgbase}-${vers}.tar.gz"
-verify=""
+verify="${url}.asc"
 arch=`uname -m`
 build=B1
 src="${pkgbase}-${vers}"
@@ -50,17 +50,17 @@ if [ $opt_config -eq 1 ] ; then
     patch -p1 < $W/$patch
   done
 
-  python setup.py config
-  
+  python2 setup.py config
+
   if [ $? != 0 ]; then
     echo "configure error. $0 script stop"
     exit 255
   fi
 fi
-    
+
 if [ $opt_build -eq 1 ] ; then
   cd $B
-  python setup.py build
+  python2 setup.py build
   if [ $? != 0 ]; then
     echo "build error. $0 script stop"
     exit 255
@@ -71,7 +71,7 @@ if [ $opt_package -eq 1 ] ; then
   check_root
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
   cd $B
-  python setup.py install --root $P
+  python2 setup.py install --root $P
 
 ################################
 #      install tweaks

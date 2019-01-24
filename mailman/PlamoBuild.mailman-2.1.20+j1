@@ -6,16 +6,16 @@ url="http://mm.poem.co.jp/mailman-jp/src/mailman-${vers}.tgz"
 arch=`uname -m`
 build=P1
 src=mailman-${vers}
-OPT_CONFIG='--prefix=/usr/lib/mailman --with-var-prefix=/var/mailman --sysconfdir=/etc --with-cgi-gid=apache --mandir=/usr/share/man'
+OPT_CONFIG='--prefix=/usr/lib/mailman --without-permcheck --with-var-prefix=/var/mailman --sysconfdir=/etc --with-cgi-gid=apache --mandir=/usr/share/man --with-python=/usr/bin/python2'
 DOCS='INSTALL NEWS README README-I18N.en README.CONTRIB README.NETSCAPE README.USERAGENT STYLEGUIDE.txt TODO gnu-COPYING-GPL'
 patchfiles=''
 compress=txz
 ##############################################################
 
-if [ `id -u` -ne 0 ] ; then
-  echo "This script is run by root."
-  exit 1
-fi
+#if [ `id -u` -ne 0 ] ; then
+#  echo "This script is run by root."
+#  exit 1
+#fi
 
 install2() {
   install -d ${2%/*} ; install -m 644 $1 $2
@@ -209,6 +209,9 @@ if [ $opt_config -eq 1 ] ; then
     for patch in $patchfiles ; do
        patch -p1 < $W/$patch
     done
+
+    find . -type f -exec \
+	 sed -i '1s,^#! \?/usr/bin/\(env \|\)python$,#!/usr/bin/python2,' {} \;
 
     # if [ -f autogen.sh ] ; then
     #   sh ./autogen.sh
