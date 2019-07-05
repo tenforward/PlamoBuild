@@ -1,0 +1,18 @@
+diff -uNr lxd-3.14/Makefile lxd-3.14.new/Makefile
+--- lxd-3.14/Makefile	2019-06-14 04:54:18.000000000 +0900
++++ lxd-3.14.new/Makefile	2019-07-05 16:28:42.179026526 +0900
+@@ -49,12 +49,13 @@
+ 	# dqlite
+ 	@if [ -d "$(GOPATH)/deps/dqlite" ]; then \
+ 		cd "$(GOPATH)/deps/dqlite"; \
+-		git pull; \
+ 	else \
+ 		git clone --depth=1 "https://github.com/CanonicalLtd/dqlite" "$(GOPATH)/deps/dqlite"; \
+ 	fi
+ 
+ 	cd "$(GOPATH)/deps/dqlite" && \
++		git pull --tags && \
++		git checkout -b v0.2.6 refs/tags/v0.2.6 && \
+ 		autoreconf -i && \
+ 		PKG_CONFIG_PATH="$(GOPATH)/deps/sqlite/" ./configure && \
+ 		make CFLAGS="-I$(GOPATH)/deps/sqlite/" LDFLAGS="-L$(GOPATH)/deps/sqlite/.libs/"
