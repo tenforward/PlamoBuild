@@ -35,9 +35,12 @@ deps:
 	# sqlite
 	@if [ -d "$(GOPATH)/deps/sqlite" ]; then \
 		cd "$(GOPATH)/deps/sqlite"; \
-		git pull; \
+		git pull --tags; \
+		git checkout -b v0.2.6 refs/tags/v0.2.6; \
 	else \
 		git clone --depth=1 "https://github.com/CanonicalLtd/sqlite" "$(GOPATH)/deps/sqlite"; \
+		git pull --tags; \
+		git checkout -b v0.2.6 refs/tags/v0.2.6; \
 	fi
 
 	cd "$(GOPATH)/deps/sqlite" && \
