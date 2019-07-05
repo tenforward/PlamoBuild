@@ -1,0 +1,9 @@
+BasedOnStyle: Chromium
+BreakBeforeBraces: Custom
+BraceWrapping:
+ AfterFunction: true
+ AfterStruct: true
+IndentWidth: 8
+PointerAlignment: Right
+UseTab: Always
+AllowAllParametersOfDeclarationOnNextLine: false
