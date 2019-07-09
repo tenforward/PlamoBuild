@@ -1,37 +1,89 @@
 #!/bin/sh
+#
+# Docker startup script for Slackware Linux
+#
+# Docker is an open-source project to easily create lightweight, portable,
+# self-sufficient containers from any application.
 
-start() {
-  if [ -x /usr/bin/docker ]; then
-    /usr/bin/docker daemon >> /var/log/docker.log 2>&1 &
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+. /lib/lsb/init-functions
+
+BASE=dockerd
+
+UNSHARE=/usr/bin/unshare
+DOCKER=/usr/bin/${BASE}
+DOCKER_PIDFILE=/var/run/${BASE}.pid
+DOCKER_LOG=/var/log/docker.log
+DOCKER_OPTS=""
+
+# Default options.
+if [ -f /etc/default/docker ]; then
+  . /etc/default/docker
+fi
+
+# Check if docker is present.
+if [ ! -x ${DOCKER} ]; then
+  echo "${DOCKER} not present or not executable"
+  exit 1
+fi
+
+docker_start() {
+  log_info_msg "Starting ${BASE}..."
+  # If there is an old PID file (no dockerd running), clean it up.
+  if [ -r ${DOCKER_PIDFILE} ]; then
+    if ! ps axc | grep ${BASE} 1> /dev/null 2> /dev/null ; then
+      echo "Cleaning up old ${DOCKER_PIDFILE}."
+      rm -f ${DOCKER_PIDFILE}
+    fi
   fi
+
+  nohup "${UNSHARE}" -m -- ${DOCKER} -p ${DOCKER_PIDFILE} ${DOCKER_OPTS} >> ${DOCKER_LOG} 2>&1 &
+  evaluate_retval
 }
 
-stop() {
-  if [ -f /var/run/docker.pid ]; then
-    kill `cat /var/run/docker.pid`
-    if [ -f /var/run/docker.pid ]; then
-      rm -rf /var/run/docker.pid
-    fi
+docker_stop() {
+  log_info_msg "Stopping ${BASE} ..."
+  if [ -r ${DOCKER_PIDFILE} ]; then
+    DOCKER_PID=$(cat ${DOCKER_PIDFILE})
+    kill ${DOCKER_PID}
+    while [ -d /proc/${DOCKER_PID} ]; do
+      sleep 1
+    done
+  fi
+  /bin/true
+  evaluate_retval
+}
+
+docker_restart() {
+  docker_stop
+  sleep 1
+  docker_start
+}
+
+docker_status() {
+  if [ -f ${DOCKER_PIDFILE} ] && ps -o cmd $(cat ${DOCKER_PIDFILE}) | grep -q ${BASE} ; then
+    echo "Status of ${BASE}: running"
+  else
+    echo "Status of ${BASE}: stopped"
   fi
 }
 
 case "$1" in
-start)
-    start
+  'start')
+    docker_start
     ;;
-stop)
-    stop
+  'stop')
+    docker_stop
     ;;
-restart)
-    stop
-    sleep 3
-    start
+  'restart')
+    docker_restart
     ;;
-*)
-    echo $"Usage: $0 {start|stop|restart}"
-    exit 1
+  'status')
+    docker_status
     ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
 esac
 
 exit 0
-

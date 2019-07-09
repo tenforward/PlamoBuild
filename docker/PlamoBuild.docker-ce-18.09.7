@@ -1,0 +1,203 @@
+#!/bin/sh
+##############################################################
+pkgbase="docker_ce"
+vers="18.09.7"
+url="https://github.com/docker/docker-ce/archive/v${vers}.tar.gz"
+add_url=(https://github.com/docker/libnetwork.git
+         https://github.com/krallin/tini.git)
+verify=""
+digest=""
+arch=`uname -m`
+build=B1
+src="docker-ce-${vers}"
+OPT_CONFIG=""
+DOCS="CHANGELOG.md README.md"
+patchfiles=""
+compress=txz
+##############################################################
+
+source /usr/share/plamobuild_functions.sh
+
+# このスクリプトで使う1文字変数の意味
+#
+# $W : このスクリプトを動かすカレントディレクトリ
+# $S : ソースコードのあるディレクトリ(デフォルト: $W/${src})
+# $B : ビルド用ディレクトリ(デフォルト: /tmp/build)
+# $P : ビルドしたファイルをインストールするディレクトリ（デフォルト: $W/work)
+
+if [ $# -eq 0 ] ; then
+  opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
+else
+  opt_download=0 ; opt_config=0 ; opt_build=0 ; opt_package=0
+  for i in $@ ; do
+    case $i in
+    download) opt_download=1 ;;
+    config) opt_config=1 ;;
+    build) opt_build=1 ;;
+    package) opt_package=1 ;;
+    esac
+  done
+fi
+
+export GOPATH=$B/build
+export PATH="$GOPATH/bin:$PATH"
+
+if [ $opt_download -eq 1 ] ; then
+    download_sources
+    for c in ${add_url[@]}
+    do
+        if [ ! -d ${c##*/} ]; then
+            git clone $c
+        fi
+    done
+fi
+
+if [ -d $S ]; then
+    for c in tini proxy
+    do
+        . "$S/components/engine/hack/dockerfile/install/${c}.installer"
+    done
+fi
+
+if [ $opt_config -eq 1 ] ; then
+######################################################################
+#  out of tree build. patch apply in src dir
+######################################################################
+    if [ -d $B ] ; then rm -rf $B ; fi ; cp -a $S $B
+    cd $B
+    for patch in $patchfiles ; do
+        patch -p1 < $W/$patch
+    done
+
+    mkdir -p build/src/github.com/docker
+    ( cd build/src/github.com/docker
+      ln -s $B/components/engine docker
+      ln -s $B/components/cli cli )
+
+    # libnetwork
+    cp -a $W/libnetwork $B
+    ( cd $B/libnetwork
+      git checkout $LIBNETWORK_COMMIT
+      mkdir build
+      mv vendor build/src )
+
+    # tini
+    ( cd $W/tini
+      git checkout -b build $TINI_COMMIT )
+
+fi
+
+if [ $opt_build -eq 1 ] ; then
+    # cli
+    echo "**** build cli"
+    cd $B/components/cli
+    DISABLE_WARN_OUTSIDE_CONTAINER=1 \
+                                  make dynbinary \
+                                  GITCOMMIT=$( cd $S && git rev-parse --short HEAD ) \
+                                  VERSION=${vers}-ce
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+
+    # daemon
+    echo "**** build daemon"
+    cd $B/components/engine
+    DOCKER_GITCOMMIT=$( cd $S && git rev-parse --short HEAD ) \
+                    DOCKER_BUILDTAGS="seccomp" \
+                    VERSION="$vers"-ce \
+                    GOPATH=$B/build \
+                    hack/make.sh dynbinary
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+
+    # proxy(libnetwork)
+    cd $B/libnetwork
+    GOPATH=$B/libnetwork/build \
+          go build -v ./cmd/proxy
+
+    # tini
+    mkdir $B/tini
+    cd $B/tini
+    cmake $W/tini
+    make tini-static
+fi
+
+if [ $opt_package -eq 1 ] ; then
+  check_root
+  if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
+  cd $B
+
+  # install cli
+  ( cd components/cli
+    install -Dm0755 -v build/docker-linux-amd64 $P/usr/bin/docker )
+
+  # install daemon
+  ( cd components/engine
+    install -Dm0755 -v $(readlink -f bundles/latest/dynbinary-daemon/dockerd) \
+            $P/usr/bin/dockerd )
+
+  # install proxy
+  install -Dm0755 -v libnetwork/proxy $P/usr/bin/docker-proxy
+
+  # install tini
+  install -Dm0755 -v tini/tini-static $P/usr/bin/docker-init
+  ln -sfv docker-init $P/usr/bin/tini-static
+
+  # udev rule
+  install -Dm0644 -v components/engine/contrib/udev/80-docker.rules \
+          $P/usr/${libdir}/udev/rules.d/80-docker.rules
+
+  # vim
+  install -Dm0644 -v components/engine/contrib/syntax/vim/syntax/dockerfile.vim \
+          $P/usr/share/vim/vim81/syntax/dockerfile.vim
+
+  # init
+  install -Dm755 -v $W/docker.init $P/etc/rc.d/init.d/docker
+  install -Dm644 -v $W/docker.init $docdir/$src/docker.init
+  for i in $(seq 0 6)
+  do
+      install -dm755 -v $P/etc/rc.d/rc"$i".d
+      case $i in
+          0|1|2|6)
+              ln -sfv ../init.d/docker $P/etc/rc.d/rc"$i".d/K01docker
+              ;;
+          3|4|5)
+              ln -sfv ../init.d/docker $P/etc/rc.d/rc"$i".d/S99docker
+              ;;
+      esac
+  done
+
+  # logrotate
+  install -Dm644 -v $W/docker.logrotate $P/etc/logrotate.d/docker
+  install -Dm644 -v $W/docker.logrotate $docdir/$src/docker.logrotate
+
+  # initpkg
+  mkdir -p $P/install
+  cat <<"EOF" >> $P/install/initpkg
+/usr/bin/getent group docker
+if [ $? -ne 0 ]; then
+  groupadd -r -g 281 docker
+fi
+EOF
+
+################################
+#      install tweaks
+#  strip binaries, delete locale except ja, compress man,
+#  install docs and patches, compress them and  chown root.root
+################################
+  install_tweak
+
+#############################
+#   convert symlink to null file and
+#   add "ln -sf" command into install/doinst.sh
+################################
+  convert_links
+
+  cd $P
+  /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+fi

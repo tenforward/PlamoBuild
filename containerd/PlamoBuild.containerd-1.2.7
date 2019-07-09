@@ -1,0 +1,94 @@
+#!/bin/sh
+##############################################################
+pkgbase="containerd"
+vers="1.2.7"
+url="https://github.com/containerd/containerd/archive/v1.2.7.tar.gz"
+_commitid="85f6aa58b8a3170aec9824568f7a31832878b603"
+verify=""
+digest=""
+arch=`uname -m`
+build=B1
+src="containerd-1.2.7"
+OPT_CONFIG="--disable-static --enable-shared"
+DOCS="LICENSE README.md RELEASES.md install.go install_opts.go releases"
+patchfiles=""
+compress=txz
+##############################################################
+
+source /usr/share/plamobuild_functions.sh
+
+# このスクリプトで使う1文字変数の意味
+#
+# $W : このスクリプトを動かすカレントディレクトリ
+# $S : ソースコードのあるディレクトリ(デフォルト: $W/${src})
+# $B : ビルド用ディレクトリ(デフォルト: /tmp/build)
+# $P : ビルドしたファイルをインストールするディレクトリ（デフォルト: $W/work)
+
+if [ $# -eq 0 ] ; then
+  opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
+else
+  opt_download=0 ; opt_config=0 ; opt_build=0 ; opt_package=0
+  for i in $@ ; do
+    case $i in
+    download) opt_download=1 ;;
+    config) opt_config=1 ;;
+    build) opt_build=1 ;;
+    package) opt_package=1 ;;
+    esac
+  done
+fi
+if [ $opt_download -eq 1 ] ; then
+    download_sources
+fi
+
+if [ $opt_config -eq 1 ] ; then
+######################################################################
+#  out of tree build. patch apply in src dir
+######################################################################
+    if [ -d $B ] ; then rm -rf $B ; fi
+    mkdir -p $B/src/github.com/containerd
+    cd $B
+    ln -rTsf $S $B/src/github.com/containerd/containerd
+fi
+
+if [ $opt_build -eq 1 ] ; then
+    export GOPATH=$B
+    cd $B/src/github.com/containerd/containerd
+    make VERSION=v${vers}.m REVISION=${_commitid}.m
+    if [ $? != 0 ]; then
+        echo "build error. $0 script stop"
+        exit 255
+    fi
+fi
+
+if [ $opt_package -eq 1 ] ; then
+  check_root
+  if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
+  cd $B/src/github.com/containerd/containerd
+
+  make install DESTDIR=$P/usr
+
+  ln -sfv containerd $P/usr/bin/docker-containerd
+  ln -sfv containerd-shim $P/usr/bin/docker-containerd-shim
+  ln -sfv ctr $P/usr/bin/docker-containerd-ctr
+
+################################
+#      install tweaks
+#  strip binaries, delete locale except ja, compress man,
+#  install docs and patches, compress them and  chown root.root
+################################
+  install_tweak
+
+#############################
+#   convert symlink to null file and
+#   add "ln -sf" command into install/doinst.sh
+################################
+  convert_links
+
+  cd $P
+  /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+fi
