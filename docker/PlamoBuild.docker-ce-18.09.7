@@ -2,16 +2,14 @@
 ##############################################################
 pkgbase="docker_ce"
 vers="18.09.7"
-url="https://github.com/docker/docker-ce/archive/v${vers}.tar.gz"
-add_url=(https://github.com/docker/libnetwork.git
-         https://github.com/krallin/tini.git)
+url="https://download.docker.com/linux/static/stable/x86_64/docker-${vers}.tgz"
 verify=""
 digest=""
 arch=`uname -m`
 build=B1
-src="docker-ce-${vers}"
+src="docker"
 OPT_CONFIG=""
-DOCS="CHANGELOG.md README.md"
+DOCS=""
 patchfiles=""
 compress=txz
 ##############################################################
@@ -39,118 +37,37 @@ else
   done
 fi
 
-export GOPATH=$B/build
-export PATH="$GOPATH/bin:$PATH"
-
 if [ $opt_download -eq 1 ] ; then
     download_sources
-    for c in ${add_url[@]}
-    do
-        if [ ! -d ${c##*/} ]; then
-            git clone $c
-        fi
-    done
-fi
-
-if [ -d $S ]; then
-    for c in tini proxy
-    do
-        . "$S/components/engine/hack/dockerfile/install/${c}.installer"
-    done
+    tar xvf ${url##*/}
 fi
 
 if [ $opt_config -eq 1 ] ; then
-######################################################################
-#  out of tree build. patch apply in src dir
-######################################################################
-    if [ -d $B ] ; then rm -rf $B ; fi ; cp -a $S $B
-    cd $B
-    for patch in $patchfiles ; do
-        patch -p1 < $W/$patch
-    done
-
-    mkdir -p build/src/github.com/docker
-    ( cd build/src/github.com/docker
-      ln -s $B/components/engine docker
-      ln -s $B/components/cli cli )
-
-    # libnetwork
-    cp -a $W/libnetwork $B
-    ( cd $B/libnetwork
-      git checkout $LIBNETWORK_COMMIT
-      mkdir build
-      mv vendor build/src )
-
-    # tini
-    ( cd $W/tini
-      git checkout -b build $TINI_COMMIT )
-
+    echo "There is nothing to do in this stage."
 fi
 
 if [ $opt_build -eq 1 ] ; then
-    # cli
-    echo "**** build cli"
-    cd $B/components/cli
-    DISABLE_WARN_OUTSIDE_CONTAINER=1 \
-                                  make dynbinary \
-                                  GITCOMMIT=$( cd $S && git rev-parse --short HEAD ) \
-                                  VERSION=${vers}-ce
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-
-    # daemon
-    echo "**** build daemon"
-    cd $B/components/engine
-    DOCKER_GITCOMMIT=$( cd $S && git rev-parse --short HEAD ) \
-                    DOCKER_BUILDTAGS="seccomp" \
-                    VERSION="$vers"-ce \
-                    GOPATH=$B/build \
-                    hack/make.sh dynbinary
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-
-    # proxy(libnetwork)
-    cd $B/libnetwork
-    GOPATH=$B/libnetwork/build \
-          go build -v ./cmd/proxy
-
-    # tini
-    mkdir $B/tini
-    cd $B/tini
-    cmake $W/tini
-    make tini-static
+    echo "There is nothing to do in this stage."
 fi
 
 if [ $opt_package -eq 1 ] ; then
   check_root
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
-  cd $B
+  cd $S
 
-  # install cli
-  ( cd components/cli
-    install -Dm0755 -v build/docker-linux-amd64 $P/usr/bin/docker )
+  # install binaries
+  install -Dm0755 -v docker $P/usr/bin/docker
+  install -Dm0755 -v containerd $P/usr/bin/containerd
+  install -Dm0755 -v ctr $P/usr/bin/ctr
+  install -Dm0755 -v containerd-shim $P/usr/bin/containerd-shim
+  install -Dm0755 -v docker-init $P/usr/bin/docker-init
+  install -Dm0755 -v docker-proxy $P/usr/bin/docker-proxy
+  install -Dm0755 -v runc $P/usr/bin/runc
+  install -Dm0755 -v dockerd $P/usr/bin/dockerd
 
-  # install daemon
-  ( cd components/engine
-    install -Dm0755 -v $(readlink -f bundles/latest/dynbinary-daemon/dockerd) \
-            $P/usr/bin/dockerd )
-
-  # install proxy
-  install -Dm0755 -v libnetwork/proxy $P/usr/bin/docker-proxy
-
-  # install tini
-  install -Dm0755 -v tini/tini-static $P/usr/bin/docker-init
-  ln -sfv docker-init $P/usr/bin/tini-static
-
-  # udev rule
-  install -Dm0644 -v components/engine/contrib/udev/80-docker.rules \
+  # udev
+  install -Dm0644 -v $W/80-docker.rules \
           $P/usr/${libdir}/udev/rules.d/80-docker.rules
-
-  # vim
-  install -Dm0644 -v components/engine/contrib/syntax/vim/syntax/dockerfile.vim \
-          $P/usr/share/vim/vim81/syntax/dockerfile.vim
 
   # init
   install -Dm755 -v $W/docker.init $P/etc/rc.d/init.d/docker
