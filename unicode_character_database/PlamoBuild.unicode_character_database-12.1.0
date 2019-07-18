@@ -1,0 +1,92 @@
+#!/bin/sh
+##############################################################
+pkgbase="unicode_character_database"
+vers="12.1.0"
+url=(https://www.unicode.org/Public/zipped/12.1.0/UCD.zip
+     https://www.unicode.org/Public/zipped/12.1.0/Unihan.zip)
+verify=""
+digest=""
+arch="noarch"
+build=B1
+src="unicode_character_database-${vers}"
+OPT_CONFIG=""
+DOCS=""
+patchfiles=""
+compress=txz
+##############################################################
+
+source /usr/share/plamobuild_functions.sh
+
+# このスクリプトで使う1文字変数の意味
+#
+# $W : このスクリプトを動かすカレントディレクトリ
+# $S : ソースコードのあるディレクトリ(デフォルト: $W/${src})
+# $B : ビルド用ディレクトリ(デフォルト: /tmp/build)
+# $P : ビルドしたファイルをインストールするディレクトリ（デフォルト: $W/work)
+
+if [ $# -eq 0 ] ; then
+  opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
+else
+  opt_download=0 ; opt_config=0 ; opt_build=0 ; opt_package=0
+  for i in $@ ; do
+    case $i in
+    download) opt_download=1 ;;
+    config) opt_config=1 ;;
+    build) opt_build=1 ;;
+    package) opt_package=1 ;;
+    esac
+  done
+fi
+if [ $opt_download -eq 1 ] ; then
+    for f in ${url[@]}
+    do
+        if [ ! -f ${f##*/} ]; then
+            wget $f
+        fi
+    done
+fi
+
+if [ $opt_config -eq 1 ] ; then
+    echo "There is nothing to do in this stage."
+fi
+
+if [ $opt_build -eq 1 ] ; then
+    echo "There is nothing to do in this stage."
+fi
+
+if [ $opt_package -eq 1 ] ; then
+  check_root
+  if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
+
+  mkdir -p $P/usr/share/unicode/ucd
+
+  for f in ${url[@]}
+  do
+      unzip $W/${f##*/} -d $P/usr/share/unicode/ucd
+      install -Dm644 ${f##*/} $P/usr/share/unicode/ucd/${f##*/}
+  done
+
+################################
+#      install tweaks
+#  strip binaries, delete locale except ja, compress man,
+#  install docs and patches, compress them and  chown root.root
+################################
+  install_tweak
+  ID=$(id -u)
+  if [ $ID -eq 0 ]; then
+      chown -R root:root $P/usr/share/unicode
+  fi
+
+#############################
+#   convert symlink to null file and
+#   add "ln -sf" command into install/doinst.sh
+################################
+  convert_links
+
+  cd $P
+  /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+fi
