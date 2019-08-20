@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="3.15"
+vers="3.16"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 verify="${url}.asc"
 arch=`uname -m`
@@ -56,12 +56,10 @@ if [ $opt_config -eq 1 ] ; then
     fi
     cp -a $W/lxd-${vers} src/github.com/lxc/lxd
 
-    # remove unnecessary static link
-    rm src/github.com/lxc/lxd/dist/src/github.com/lxc/lxd
-
     # copy dependent sources including lxd source archive to src
-    rsync -a src/github.com/lxc/lxd/dist/src/ src
-    rm -rf src/github.com/lxc/lxd/dist
+    rm -rf src/github.com/lxc/lxd/_dist/src/github.com/lxc
+    rsync -a src/github.com/lxc/lxd/_dist/src/ src
+    rsync -a src/github.com/lxc/lxd/_dist/deps/ deps
 
 fi
 

@@ -89,6 +89,17 @@ if [ $opt_package -eq 1 ] ; then
   export LDFLAGS='-Wl,--as-needed'
   make install DESTDIR=$P
 
+  install -Dm644 -v $W/ibus-daemon.desktop $P/etc/xdg/autostart/ibus-daemon.desktop
+  install -Dm644 -v $W/ibus-daemon.desktop $docdir/$src/ibus-daemon.desktop
+
+  mkdir -p $P/install
+  cat <<EOF >> $P/install/initpkg
+  gtk-query-immodules-2.0 --update-cache
+  gtk-query-immodules-3.0 --update-cache
+
+  dconf update
+EOF
+
 ################################
 #      install tweaks
 #  strip binaries, delete locale except ja, compress man,

@@ -154,14 +154,6 @@ if [ $opt_package -eq 1 ] ; then
   install -Dm644 -v data/images/unix/ui-alpha_full.png	$P/usr/share/ibus-mozc/alpha_full.png
   install -Dm755 -v out_linux/Release/mozc_renderer	$P/usr/lib/mozc/mozc_renderer
 
-  mkdir -p $P/install
-  cat <<EOF >> $P/install/initpkg
-  gtk-query-immodules-2.0 --update-cache
-  gtk-query-immodules-3.0 --update-cache
-
-  dconf update
-EOF
-
 ################################
 #      install tweaks
 #  strip binaries, delete locale except ja, compress man,
