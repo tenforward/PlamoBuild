@@ -1,0 +1,177 @@
+#!/bin/sh
+##############################################################
+pkgbase="ibus_mozc"
+vers="2.23.2815.102"
+url="https://github.com/google/mozc.git"
+commitid="afb03ddfe72dde4cf2409863a3bfea160f7a66d8"
+
+_utdicver=20171008
+_zipcoderel=201811
+_uimmozcrev=c979f127acaeb7b35d3344e8b1e40848e1a68d54
+
+dict_url=(
+    https://osdn.net/projects/ponsfoot-aur/storage/mozc/mozcdic-ut2-${_utdicver}.tar.bz2
+    https://osdn.net/projects/ponsfoot-aur/storage/mozc/edict2-${_utdicver}.gz
+    https://osdn.net/projects/ponsfoot-aur/storage/mozc/ken_all-${_zipcoderel}.zip
+    https://osdn.net/projects/ponsfoot-aur/storage/mozc/jigyosyo-${_zipcoderel}.zip )
+
+patch_url="https://gist.githubusercontent.com/MightyPork/6b93f56b404e526268ac133f1a783afd/raw/40b3b9569d4b0741d78c511b247b26d2b1e7a2ae/mozc.patch"
+
+verify=""
+digest=""
+arch=`uname -m`
+build=B1
+src="mozc"
+OPT_CONFIG="--disable-static --enable-shared"
+DOCS="AUTHORS LICENSE README.md"
+#patchfiles="${patch_url##*/} gcc8.patch"
+patchfiles="${patch_url##*/}"
+compress=txz
+##############################################################
+
+source /usr/share/plamobuild_functions.sh
+
+# このスクリプトで使う1文字変数の意味
+#
+# $W : このスクリプトを動かすカレントディレクトリ
+# $S : ソースコードのあるディレクトリ(デフォルト: $W/${src})
+# $B : ビルド用ディレクトリ(デフォルト: /tmp/build)
+# $P : ビルドしたファイルをインストールするディレクトリ（デフォルト: $W/work)
+B="$W/mozc-${vers}"
+
+if [ $# -eq 0 ] ; then
+  opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
+else
+  opt_download=0 ; opt_config=0 ; opt_build=0 ; opt_package=0
+  for i in $@ ; do
+    case $i in
+    download) opt_download=1 ;;
+    config) opt_config=1 ;;
+    build) opt_build=1 ;;
+    package) opt_package=1 ;;
+    esac
+  done
+fi
+if [ $opt_download -eq 1 ] ; then
+
+    if [ ! -d $W/$src.bak ]; then
+	download_sources
+	cp -a $W/$src $W/$src.bak
+    else
+	( cd $W ; cp -a $src.bak $src )
+    fi
+
+    for d in ${dict_url[@]}
+    do
+	if [ ! -f ${d##*/} ]; then
+	    wget $d
+	fi
+	case ${d##*/} in
+	    *.tar.*) tar xvf ${d##*/} ;;
+	    *.gz) gzip -d ${d##*/} ;;
+	    *.zip) unzip ${d##*/} ;;
+	esac
+    done
+    tar xvf mozcdic-ut2-${_utdicver}.tar.bz2
+
+    if [ ! -f ${patch_url##*/} ]; then
+	wget $patch_url
+    fi
+fi
+
+if [ $opt_config -eq 1 ] ; then
+######################################################################
+#  out of tree build. patch apply in src dir
+######################################################################
+    if [ -d $B ] ; then rm -rf $B ; fi ; cp -a $S $B
+    if [ -d $W/mozc-ut2-${vers}.${_utdicver} ]; then rm -rf $W/mozc-ut2-${vers}.${_utdicver}; fi
+    cd $B
+
+    ln -sf $(which python2) $B/python
+
+    git submodule update --init --recursive
+
+    for patch in $patchfiles ; do
+        patch -p1 < $W/$patch
+    done
+
+    echo -n "Generation UT dictionary seed: "
+    cd $W/mozcdic-ut2-${_utdicver}
+    sh -x $W/mod-generate-dictionary.sh
+    MOZCVER="$vers" DICVER="$_utdicver" \
+	   sh -x ./generate-dictionary.sh
+    echo "done."
+
+fi
+
+if [ $opt_build -eq 1 ] ; then
+    PATH=$B:$PATH
+
+    cd $B/src
+
+    _targets=" \
+        server/server.gyp:mozc_server \
+        gui/gui.gyp:mozc_tool \
+	unix/emacs/emacs.gyp:mozc_emacs_helper \
+	unix/ibus/ibus.gyp:ibus_mozc \
+	renderer/renderer.gyp:mozc_renderer"
+
+    python2 build_mozc.py gyp
+    python2 build_mozc.py build -c Release $_targets
+
+    sed -i 's|/usr/libexec/|/usr/lib/ibus-mozc/|g' \
+          out_linux/Release/gen/unix/ibus/mozc.xml
+fi
+
+if [ $opt_package -eq 1 ] ; then
+  check_root
+  if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
+  cd $B/src
+
+  # mozc-ut2
+  install -Dm755 -v out_linux/Release/mozc_server	$P/usr/${libdir}/mozc/mozc_server
+  install -Dm755 -v out_linux/Release/mozc_tool	$P/usr/${libdir}/mozc/mozc_tool
+  install -Dm644 -v data/installer/*.html	-t $P/usr/${libdir}/mozc/documents/
+
+  cp -av docs-ut $docdir/$src/
+
+  # emacs
+  install -Dm755 -v out_linux/Release/mozc_emacs_helper	$P/usr/bin/mozc_emacs_helper
+  install -Dm644 -v unix/emacs/mozc.el			$P/usr/share/emacs/site-lisp/emacs-mozc
+
+  # ibus-mozc
+  install -Dm755 -v out_linux/Release/ibus_mozc		$P/usr/lib/ibus-mozc/ibus-engine-mozc
+  install -Dm644 -v out_linux/Release/gen/unix/ibus/mozc.xml	$P/usr/share/ibus/component/mozc.xml
+  install -Dm644 -v data/images/unix/ime_product_icon_opensource-32.png	$P/usr/share/ibus-mozc/product_icon.png
+  install -Dm644 -v data/images/unix/ui-tool.png	$P/usr/share/ibus-mozc/tool.png
+  install -Dm644 -v data/images/unix/ui-properties.png	$P/usr/share/ibus-mozc/properties.png
+  install -Dm644 -v data/images/unix/ui-dictionary.png	$P/usr/share/ibus-mozc/dictionary.png
+  install -Dm644 -v data/images/unix/ui-direct.png	$P/usr/share/ibus-mozc/direct.png
+  install -Dm644 -v data/images/unix/ui-hiragana.png	$P/usr/share/ibus-mozc/hiragana.png
+  install -Dm644 -v data/images/unix/ui-katakana_half.png	$P/usr/share/ibus-mozc/katakana_half.png
+  install -Dm644 -v data/images/unix/ui-katakana_full.png	$P/usr/share/ibus-mozc/katakana_full.png
+  install -Dm644 -v data/images/unix/ui-alpha_half.png	$P/usr/share/ibus-mozc/alpha_half.png
+  install -Dm644 -v data/images/unix/ui-alpha_full.png	$P/usr/share/ibus-mozc/alpha_full.png
+  install -Dm755 -v out_linux/Release/mozc_renderer	$P/usr/lib/mozc/mozc_renderer
+
+################################
+#      install tweaks
+#  strip binaries, delete locale except ja, compress man,
+#  install docs and patches, compress them and  chown root.root
+################################
+  S=$src.bak
+  install_tweak
+
+#############################
+#   convert symlink to null file and
+#   add "ln -sf" command into install/doinst.sh
+################################
+  convert_links
+
+  cd $P
+  /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+fi
