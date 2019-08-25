@@ -8,7 +8,7 @@ digest=""
 arch=`uname -m`
 build=B1
 src="fuse-exfat-1.3.0"
-OPT_CONFIG="--disable-static --enable-shared"
+OPT_CONFIG="--disable-static --enable-shared --exec-prefix=/"
 DOCS="COPYING ChangeLog README"
 patchfiles=""
 compress=txz
