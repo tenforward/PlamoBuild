@@ -1,25 +1,24 @@
 #!/bin/sh
 ##############################################################
 pkgbase="chromium"
-vers="75.0.3770.142"
+vers="77.0.3865.75"
 url="https://commondatastorage.googleapis.com/chromium-browser-official/chromium-${vers}.tar.xz"
 launcher_vers="6"
 launcher_url="https://github.com/foutrelis/chromium-launcher/archive/v${launcher_vers}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
-build=B1
+build=B2
 src="chromium-${vers}"
 OPT_CONFIG="--disable-static --enable-shared"
 DOCS="AUTHORS LICENSE LICENSE.chromium_os README.md"
-#	chromium-system-icu.patch
 patchfiles="
-	libstdc-do-not-assume-unique_ptr-has-ostream-operator.patch
-	disallow-partial-swaps-for-linux-based-on-gl_version.patch
-	chromium-fix-window-flash-for-some-WMs.patch
+	include-memory-in-one_euro_filter.h.patch
+	link-against-harfbuzz-subset.patch
+	fix-wrong-string-initialization-in-LinkedHashSet.patch
+	include-limits-in-web_time_range.cc.patch
 	chromium-widevine.patch
-	chromium-skia-harmony.patch
-	chromium-non-const-deltas.patch"
+	chromium-skia-harmony.patch"
 compress=txz
 ##############################################################
 
@@ -135,6 +134,7 @@ if [ $opt_download -eq 1 ] ; then
     if [ ! -f ${launcher_url##*/} ]; then
 	wget $launcher_url
     fi
+    rm -rf chromium-launcher-${launcher_vers}
     tar xvf ${launcher_url##*/}
 fi
 
@@ -200,8 +200,8 @@ if [ $opt_build -eq 1 ] ; then
     # ninja -v -C out/Release chrome chrome_sandbox chromedriver
     ninja -C out/Release chrome chrome_sandbox chromedriver
 
+    cd $W
     echo "*** Build chromium launcher"
-    rm -rf $W/chromium-launcher-${launcher_vers}
     make -C chromium-launcher-${launcher_vers}
 fi
 
