@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="3.16"
+vers="3.17"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 verify="${url}.asc"
 arch=`uname -m`
@@ -46,6 +46,8 @@ if [ $opt_config -eq 1 ] ; then
       done
     fi
     touch .patched
+
+    cp -v $W/linux-containers-lxd-ja.po $S/po/ja.po
 
     cd $B
     # put in the stuff under the GOPATH under the golang rule
