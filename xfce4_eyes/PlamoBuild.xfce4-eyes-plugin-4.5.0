@@ -1,26 +1,18 @@
 #!/bin/sh
 ##############################################################
-pkgbase="darktable"
-vers="2.6.2"
-url="https://github.com/darktable-org/darktable/releases/download/release-${vers}/darktable-${vers}.tar.xz"
+pkgbase="xfce4_eyes_plugin"
+vers="4.5.0"
+url="http://archive.xfce.org/src/panel-plugins/xfce4-eyes-plugin/4.5/xfce4-eyes-plugin-4.5.0.tar.bz2"
 verify=""
-digest="${url}.asc"
+digest="md5sum:6e274ceda37c7a8ae0821d9d49e965e9"
 arch=`uname -m`
-build=B3
-src="darktable-${vers}"
-OPT_CONFIG="
-	-DCMAKE_BUILD_TYPE=Release
-	-DBINARY_PACKAGE_BUILD=1
-	-DBUILD_USERMANUAL=False
-	-DUSE_LIBSECRET=ON
-	-DUSE_LUA=ON
-	-DUSE_COLORD=ON
-	-DUSE_OPENMP=OFF
-	-DUSE_GRAPHICSMAGICK=OFF
-	-DRAWSPEED_ENABLE_LTO=ON
-	-DPROJECT_VERSION=${vers}"
-DOCS="AUTHORS LICENSE README.md RELEASE_NOTES.md"
-patchfiles="dmc-tx1.patch dsc-rx100m7.patch"
+build=B1
+src="xfce4-eyes-plugin-4.5.0"
+OPT_CONFIG="--disable-static --enable-shared"
+DOCS="AUTHORS COPYING ChangeLog INSTALL NEWS README"
+patchfiles=""
+# specifies files that are not in source archive and patchfiles
+addfiles=""
 compress=txz
 ##############################################################
 
@@ -51,6 +43,15 @@ if [ $opt_download -eq 1 ] ; then
 fi
 
 if [ $opt_config -eq 1 ] ; then
+
+    for f in $addfiles $patchfiles
+    do
+        if [ ! -f $f ]; then
+            echo "Required file ($f) is missing."
+            exit 255
+        fi
+    done
+
 ######################################################################
 #  out of tree build. patch apply in src dir
 ######################################################################
@@ -68,7 +69,7 @@ if [ $opt_config -eq 1 ] ; then
     cd $B
     export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig
     export LDFLAGS='-Wl,--as-needed' 
-    cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ${OPT_CONFIG} $S  
+    $S/configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --mandir='${prefix}'/share/man ${OPT_CONFIG}
     if [ $? != 0 ]; then
         echo "configure error. $0 script stop"
         exit 255
