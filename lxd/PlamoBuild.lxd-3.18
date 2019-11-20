@@ -1,11 +1,11 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="3.17"
+vers="3.18"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 verify="${url}.asc"
 arch=`uname -m`
-build=P1
+build=B2
 src="lxd-${vers}"
 OPT_CONFIG='--disable-static --enable-shared'
 DOCS='AUTHORS COPYING'
@@ -47,7 +47,9 @@ if [ $opt_config -eq 1 ] ; then
     fi
     touch .patched
 
-    cp -v $W/linux-containers-lxd-ja.po $S/po/ja.po
+    if [ -f $W/linux-containers-lxd-ja.po ]; then
+        cp -v $W/linux-containers-lxd-ja.po $S/po/ja.po
+    fi
 
     cd $B
     # put in the stuff under the GOPATH under the golang rule
