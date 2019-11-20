@@ -1,0 +1,31 @@
+diff -uNr darktable-2.6.2/src/external/rawspeed/data/cameras.xml darktable-2.6.2.new/src/external/rawspeed/data/cameras.xml
+--- darktable-2.6.2/src/external/rawspeed/data/cameras.xml	2019-01-31 03:42:57.000000000 +0900
++++ darktable-2.6.2.new/src/external/rawspeed/data/cameras.xml	2019-08-25 23:54:42.730790168 +0900
+@@ -7205,6 +7205,7 @@
+ 			<Alias>DMC-ZS110</Alias>
+ 			<Alias>DMC-TZ101</Alias>
+ 			<Alias>DMC-TZ110</Alias>
++			<Alias>DMC-TX1</Alias>
+ 		</Aliases>
+ 	</Camera>
+ 	<Camera make="Panasonic" model="DMC-TZ100" mode="3:2">
+@@ -7222,6 +7223,7 @@
+ 			<Alias>DMC-ZS110</Alias>
+ 			<Alias>DMC-TZ101</Alias>
+ 			<Alias>DMC-TZ110</Alias>
++			<Alias>DMC-TX1</Alias>
+ 		</Aliases>
+ 	</Camera>
+ 	<Camera make="Panasonic" model="DC-FZ82">
+diff -uNr darktable-2.6.2/src/external/rawspeed/data/cameras.xsd darktable-2.6.2.new/src/external/rawspeed/data/cameras.xsd
+--- darktable-2.6.2/src/external/rawspeed/data/cameras.xsd	2019-01-31 03:42:57.000000000 +0900
++++ darktable-2.6.2.new/src/external/rawspeed/data/cameras.xsd	2019-08-25 23:54:42.730790168 +0900
+@@ -306,7 +306,7 @@
+   </xs:complexType>
+   <xs:complexType name="AliasesType">
+     <xs:sequence>
+-      <xs:element type="AliasType" name="Alias" minOccurs="1" maxOccurs="4"/>
++      <xs:element type="AliasType" name="Alias" minOccurs="1" maxOccurs="5"/>
+     </xs:sequence>
+   </xs:complexType>
+   <xs:simpleType name="HintTypeNameType">
