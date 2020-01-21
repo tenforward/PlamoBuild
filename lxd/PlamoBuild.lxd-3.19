@@ -1,11 +1,11 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="3.18"
+vers="3.19"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 verify="${url}.asc"
 arch=`uname -m`
-build=B2
+build=B1
 src="lxd-${vers}"
 OPT_CONFIG='--disable-static --enable-shared'
 DOCS='AUTHORS COPYING'
@@ -103,9 +103,10 @@ if [ $opt_package -eq 1 ] ; then
   cd $B
 
   # bin
-  install -D -m755 -v bin/lxd $P/usr/bin/lxd
-  install -D -m755 -v bin/lxc $P/usr/bin/lxc
-  install -D -m755 -v bin/fuidshift $P/usr/bin/fuidshift
+  for f in $(ls $B/bin/)
+  do
+      install -D -m755 -v bin/$f $P/usr/bin/$f
+  done
 
   # dep libs
   install -D -m755 -v deps/dqlite/.libs/libdqlite.so.0 $P/usr/lib/lxd/libdqlite.so.0
