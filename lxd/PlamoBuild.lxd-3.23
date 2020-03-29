@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase="lxd"
-vers="3.22"
+vers="3.23"
 url="https://linuxcontainers.org/downloads/lxd/lxd-${vers}.tar.gz"
 verify="${url}.asc"
 arch=`uname -m`
@@ -111,8 +111,8 @@ if [ $opt_package -eq 1 ] ; then
   # dep libs
   install -D -m755 -v deps/dqlite/.libs/libdqlite.so.0 $P/usr/lib/lxd/libdqlite.so.0
   install -D -m755 -v deps/sqlite/.libs/libsqlite3.so.0 $P/usr/lib/lxd/libsqlite3.so.0
-  install -D deps/raft/.libs/libraft.so* -t $P/usr/lib/lxd/
-  install -D -m755 -v deps/libco/libco.so $P/usr/lib/lxd/libco.so
+  install -D -v deps/raft/.libs/libraft.so* -t $P/usr/lib/lxd/
+  install -D -v deps/libco/libco.so* -t $P/usr/lib/lxd/
 
   # message
   install -D -m644 src/github.com/lxc/lxd/po/ja.mo $P/usr/share/locale/ja/LC_MESSAGES/lxd.mo
@@ -125,7 +125,7 @@ if [ $opt_package -eq 1 ] ; then
   install -D -m755 $W/lxd.init $P/etc/rc.d/init.d/lxd
 
   #
-  install -D -m644 src/github.com/lxc/lxd/config/bash/lxd-client \
+  install -D -m644 src/github.com/lxc/lxd/scripts/bash/lxd-client \
           $P/usr/share/bash-completion/completions/lxc
 
   # initpkg
