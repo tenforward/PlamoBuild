@@ -1,16 +1,18 @@
 #!/bin/sh
 ##############################################################
-pkgbase="lenovo_throttling_fix"
-vers=""
-url="https://github.com/erpalma/lenovo-throttling-fix.git"
+pkgbase="dstat"
+vers="0.7.4"
+url="https://github.com/dagwieers/dstat/archive/v${vers}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
 build=B1
-src="lenovo-throttling-fix"
-OPT_CONFIG=""
-DOCS="LICENSE README.md requirements.txt"
-patchfiles=""
+src="dstat-${vers}"
+OPT_CONFIG="--disable-static --enable-shared"
+DOCS="AUTHORS COPYING ChangeLog README.adoc TODO"
+patchfiles="220a785321b13b6df92a536080aca6ef1cb644ad.patch"
+# specifies files that are not in source archive and patchfiles
+addfiles=""
 compress=txz
 ##############################################################
 
@@ -36,47 +38,42 @@ else
     esac
   done
 fi
-
-###
-#version = date.commitid
-###
-if [ $opt_download -ne 1 ]; then
-    pushd $S
-    vers=$(TZ=UTC git show -s --pretty=%cd --date=format-local:%Y%m%d HEAD).$(git rev-parse --short HEAD)
-    pkg=${pkgbase}-${vers}-${arch}-${build}
-    popd
-fi
-
 if [ $opt_download -eq 1 ] ; then
     download_sources
 fi
 
 if [ $opt_config -eq 1 ] ; then
-    echo "There is nothing to do in config section."
+
+    for f in $addfiles $patchfiles
+    do
+        if [ ! -f $f ]; then
+            echo "Required file ($f) is missing."
+            exit 255
+        fi
+    done
+
+######################################################################
+#  out of tree build. patch apply in src dir
+######################################################################
+    if [ -d $B ] ; then rm -rf $B ; fi ; cp -a $S $B
+    cd $B
+    for patch in $patchfiles ; do
+        patch -p1 < $W/$patch
+    done
 fi
 
 if [ $opt_build -eq 1 ] ; then
-    echo "There is nothing to do in build section."
+    echo "There is nothing to do"
 fi
 
 if [ $opt_package -eq 1 ] ; then
   check_root
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
-  cd $S
+  cd $B
 
-  install -Dm644 -v etc/lenovo_fix.conf $P/etc/lenovo_fix.conf.dist
-  install -dm755 -v $P/opt/lenovo_fix
-  install -Dm755 -v lenovo_fix.py $P/opt/lenovo_fix/lenovo_fix.py
-  install -Dm755 -v mmio.py $P/opt/lenovo_fix/mmio.py
-
-  mkdir -p $P/install
-  cat <<EOF >> $P/install/initpkg
-if [ ! -f /etc/lenovo_fix.conf ]; then
-   ( cd /etc
-     cp -v lenovo_fix.conf.dist lenovo_fix.conf
-   )
-fi
-EOF
+  export LDFLAGS='-Wl,--as-needed'
+  make install DESTDIR=$P
+  make docs DESTDIR=$P
 
 ################################
 #      install tweaks
