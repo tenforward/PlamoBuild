@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
 pkgbase="docker_ce"
-vers="18.09.7"
+vers="19.03.13"
 url="https://download.docker.com/linux/static/stable/x86_64/docker-${vers}.tgz"
 verify=""
 digest=""
