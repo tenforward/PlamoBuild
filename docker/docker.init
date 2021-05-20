@@ -16,6 +16,7 @@ DOCKER=/usr/bin/${BASE}
 DOCKER_PIDFILE=/var/run/${BASE}.pid
 DOCKER_LOG=/var/log/docker.log
 DOCKER_OPTS=""
+XDG_RUNTIME_DIR=""
 
 # Default options.
 if [ -f /etc/default/docker ]; then
