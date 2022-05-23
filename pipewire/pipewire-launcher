@@ -3,6 +3,8 @@ pkill -u "${USER}" -x pipewire\|wireplumber 1>/dev/null 2>&1
 /usr/bin/pipewire &
 /usr/bin/pipewire -c pipewire-pulse.conf &
 
+sleep 1
+
 if [ -x /usr/bin/wireplumber ]; then
   exec /usr/bin/wireplumber
 fi
