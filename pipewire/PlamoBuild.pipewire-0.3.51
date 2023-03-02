@@ -98,7 +98,7 @@ if [ $opt_package -eq 1 ] ; then
   DESTDIR=$P ninja install
 
   # install desktopfile
-  install -v -Dm755 $W/pipewire.desktop $P/etc/xdg/autostart/pipewire.desktop
+  install -v -Dm644 $W/pipewire.desktop $P/etc/xdg/autostart/pipewire.desktop
   install -v -Dm644 $W/pipewire.desktop $P/usr/share/doc/$src/pipewire.desktop
 
   # install launcher

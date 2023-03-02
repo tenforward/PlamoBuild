@@ -1,9 +1,9 @@
 #!/bin/sh
 ##############################################################
 pkgbase="netcat_openbsd"
-vers="1.206"
+vers="1.218"
 urls=(http://ftp.debian.org/debian/pool/main/n/netcat-openbsd/netcat-openbsd_${vers}.orig.tar.gz
-      http://ftp.debian.org/debian/pool/main/n/netcat-openbsd/netcat-openbsd_${vers}-1.debian.tar.xz)
+      http://ftp.debian.org/debian/pool/main/n/netcat-openbsd/netcat-openbsd_${vers}-5.debian.tar.xz)
 verify=""
 digest=""
 arch=`uname -m`
@@ -14,7 +14,7 @@ DOCS=""
 patchfiles=""
 # specifies files that are not in source archive and patchfiles
 addfiles=""
-compress=txz
+compress=tzst
 ##############################################################
 
 source /usr/share/plamobuild_functions.sh
@@ -40,7 +40,7 @@ else
   done
 fi
 if [ $opt_download -eq 1 ] ; then
-    for url in ${urls}
+    for url in ${urls[@]}
     do
 	if [ ! -f ${url##*/} ]; then
 	    wget $url
@@ -68,7 +68,7 @@ if [ $opt_config -eq 1 ] ; then
     for patch in $patchfiles ; do
         patch -p1 < $W/$patch
     done
-    for p in $(ls $W/debian/patches)
+    for p in $(cat $W/debian/patches/series)
     do
 	patch -p1 -i $W/debian/patches/$p
     done
