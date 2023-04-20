@@ -94,7 +94,7 @@ if [ $opt_package -eq 1 ] ; then
   make install DESTDIR=$P
 
   install -dv $P/etc/opendkim/keys
-  install -m 0644 -v opendkim/opendkim.conf.sample $P/etc/opendkim/opendkim.conf.sample
+  install -m 0644 -v $W/opendkim.conf $P/etc/opendkim/opendkim.conf
 
 ################################
 #      install tweaks
