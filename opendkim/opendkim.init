@@ -34,7 +34,7 @@ case "$1" in
 
    stop)
       log_info_msg "Stopping opendkim..."
-      killproc -p "/run/opendkim.pid" /usr/sbin/opendkim
+      killproc -p "/run/opendkim/opendkim.pid" /usr/sbin/opendkim
       evaluate_retval
       ;;
 
@@ -45,7 +45,7 @@ case "$1" in
       ;;
 
    status)
-      statusproc /usr/sbin/unbound
+      statusproc /usr/sbin/opendkim
       ;;
 
    *)

@@ -96,6 +96,31 @@ if [ $opt_package -eq 1 ] ; then
   install -dv $P/etc/opendkim/keys
   install -m 0644 -v $W/opendkim.conf $P/etc/opendkim/opendkim.conf
 
+  install -v -D -m 0644 $W/opendkim.init $P/etc/rc.d/init.d/opendkim
+  install -v -D -m 0644 $W/opendkim.init $docdir/$src/opendkim.init
+
+  for i in $(seq 0 6)
+  do
+      install -dm0755 $P/etc/rc.d/rc"$i".d
+      case $i in
+	  0|1|2|6)
+	      ln -sfv ../init.d/opendkim $P/etc/rc.d/rc"$i".d/K05opendkim
+	      ;;
+	  3|4|5)
+	      ln -sfv ../init.d/opendkim $P/etc/rc.d/rc"$i".d/S95opendkim
+	      ;;
+      esac
+  done
+
+  mkdir -p $P/install
+  cat <<EOF >> $P/install/initpkg
+grep -q opendkim /etc/passwd
+if [ \$? -ne 0 ]; then
+  echo "Add opendkim user/group"
+  useradd -r opendkim
+fi
+EOF
+
 ################################
 #      install tweaks
 #  strip binaries, delete locale except ja, compress man,
