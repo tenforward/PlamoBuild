@@ -1,18 +1,18 @@
 #!/bin/sh
 ##############################################################
-pkgbase="zellij"
-vers="0.29.1"
-url="https://github.com/zellij-org/zellij/releases/download/v${vers}/zellij-x86_64-unknown-linux-musl.tar.gz"
+pkgbase="libmilter"
+vers="8.17.1"
+url="https://ftp.sendmail.org/sendmail.${vers}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
 build=B1
-src=""
-OPT_CONFIG=""
-DOCS=""
-patchfiles=""
+src="sendmail-${vers}"
+OPT_CONFIG="--disable-static --enable-shared"
+DOCS="INSTALL LICENSE README RELEASE_NOTES doc"
+patchfiles="fd-passing-libmilter.patch"
 # specifies files that are not in source archive and patchfiles
-addfiles=""
+addfiles="site.config.m4"
 compress=tzst
 ##############################################################
 
@@ -43,17 +43,44 @@ if [ $opt_download -eq 1 ] ; then
 fi
 
 if [ $opt_config -eq 1 ] ; then
-    echo "There is nothing to do."
-fi
 
+    for f in $addfiles $patchfiles
+    do
+        if [ ! -f $f ]; then
+            echo "Required file ($f) is missing."
+            exit 255
+        fi
+    done
+
+######################################################################
+#  source copy build. patch apply in build dir
+######################################################################
+    if [ -d $B ] ; then rm -rf $B ; fi ;  cp -a $S $B  
+    cd $B
+    for patch in $patchfiles ; do
+       patch -p1 < $W/$patch
+    done
+    cp -v $W/site.config.m4 devtools/Site
+fi
 if [ $opt_build -eq 1 ] ; then
-    echo "There is nothing to do."
+    cd $B/$pkgbase
+    export LDFLAGS='-Wl,--as-needed'
+    ./Build
+    if [ $? != 0 ]; then
+        echo "build error. $0 script stop"
+        exit 255
+    fi
 fi
 
 if [ $opt_package -eq 1 ] ; then
   check_root
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
-  install -Dm755 -v $W/${pkgbase} $P/usr/bin/${pkgbase}
+  cd $B/$pkgbase
+
+  export LDFLAGS='-Wl,--as-needed'
+  install -dv $P/usr/${libdir}
+  ./Build DESTDIR=$P install
+  chown -R root:root $P/*
 
 ################################
 #      install tweaks
@@ -61,6 +88,7 @@ if [ $opt_package -eq 1 ] ; then
 #  install docs and patches, compress them and  chown root.root
 ################################
   install_tweak
+  ( cd $P/usr/share/doc && mv $src $pkgbase-$vers )
 
 #############################
 #   convert symlink to null file and

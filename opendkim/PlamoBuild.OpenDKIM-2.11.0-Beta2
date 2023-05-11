@@ -1,18 +1,18 @@
 #!/bin/sh
 ##############################################################
-pkgbase=""
-vers="lxc"
-url="https://github.com/lxc/lxc.git"
+pkgbase="OpenDKIM"
+vers="2.11.0_Beta2"
+url="https://github.com/trusteddomainproject/OpenDKIM/archive/refs/tags/${vers/_/-}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
 build=B1
-src="lxc"
-OPT_CONFIG="--buildtype=release"
-DOCS="AUTHORS COPYING LICENSE.GPL2 LICENSE.LGPL2.1 MAINTAINERS README.md doc"
+src="OpenDKIM-${vers/_/-}"
+OPT_CONFIG="--disable-static --enable-shared --with-openldap"
+DOCS="HowToRelease INSTALL LICENSE LICENSE.Sendmail README README.ERLANG RELEASE_NOTES RELEASE_NOTES.Sendmail docs"
 patchfiles=""
 # specifies files that are not in source archive and patchfiles
-addfiles=""
+addfiles="opendkim.init"
 compress=tzst
 ##############################################################
 
@@ -56,21 +56,19 @@ if [ $opt_config -eq 1 ] ; then
 ######################################################################
 #  out of tree build. patch apply in src dir
 ######################################################################
-    if [ -d $B ] ; then rm -rf $B ; fi ; mkdir -p $B 
-    cd $S
+    if [ -d $B ] ; then rm -rf $B ; fi ; cp -a $S $B
+    cd $B
     for patch in $patchfiles ; do
         if [ ! -f .${patch} ]; then
             patch -p1 < $W/$patch
             touch .${patch}
         fi
     done
-    # if [ -f autogen.sh ] ; then
-    #   sh ./autogen.sh
-    # fi
-    cd $B
+    autoreconf -i
+
     export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
     export LDFLAGS='-Wl,--as-needed' 
-    meson --prefix=/usr --libdir=/usr/${libdir} ${OPT_CONFIG} $S  
+    ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir=/usr/share/man ${OPT_CONFIG}
     if [ $? != 0 ]; then
         echo "configure error. $0 script stop"
         exit 255
@@ -79,7 +77,8 @@ fi
 
 if [ $opt_build -eq 1 ] ; then
     cd $B 
-    ninja
+    export LDFLAGS='-Wl,--as-needed'
+    make -j3
     if [ $? != 0 ]; then
         echo "build error. $0 script stop"
         exit 255
@@ -91,7 +90,36 @@ if [ $opt_package -eq 1 ] ; then
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
   cd $B
 
-  DESTDIR=$P ninja install
+  export LDFLAGS='-Wl,--as-needed'
+  make install DESTDIR=$P
+
+  install -dv $P/etc/opendkim/keys
+  install -m 0644 -v $W/opendkim.conf $P/etc/opendkim/opendkim.conf
+
+  install -v -D -m 0644 $W/opendkim.init $P/etc/rc.d/init.d/opendkim
+  install -v -D -m 0644 $W/opendkim.init $docdir/$src/opendkim.init
+
+  for i in $(seq 0 6)
+  do
+      install -dm0755 $P/etc/rc.d/rc"$i".d
+      case $i in
+	  0|1|2|6)
+	      ln -sfv ../init.d/opendkim $P/etc/rc.d/rc"$i".d/K05opendkim
+	      ;;
+	  3|4|5)
+	      ln -sfv ../init.d/opendkim $P/etc/rc.d/rc"$i".d/S95opendkim
+	      ;;
+      esac
+  done
+
+  mkdir -p $P/install
+  cat <<EOF >> $P/install/initpkg
+grep -q opendkim /etc/passwd
+if [ \$? -ne 0 ]; then
+  echo "Add opendkim user/group"
+  useradd -r opendkim
+fi
+EOF
 
 ################################
 #      install tweaks
