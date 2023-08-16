@@ -1,7 +1,7 @@
 #!/bin/sh
 ##############################################################
-pkgbase="docker_ce"
-vers="19.03.13"
+pkgbase="docker"
+vers="24.0.5"
 url="https://download.docker.com/linux/static/stable/x86_64/docker-${vers}.tgz"
 verify=""
 digest=""
@@ -57,13 +57,13 @@ if [ $opt_package -eq 1 ] ; then
 
   # install binaries
   install -Dm0755 -v docker $P/usr/bin/docker
+  install -Dm0755 -v docker-init $P/usr/bin/docker-init
+  install -Dm0755 -v docker-proxy $P/usr/bin/docker-proxy
+  install -Dm0755 -v dockerd $P/usr/bin/dockerd
+  install -Dm0755 -v runc $P/usr/bin/runc
   install -Dm0755 -v containerd $P/usr/bin/containerd
   install -Dm0755 -v ctr $P/usr/bin/ctr
   install -Dm0755 -v containerd-shim $P/usr/bin/containerd-shim
-  install -Dm0755 -v docker-init $P/usr/bin/docker-init
-  install -Dm0755 -v docker-proxy $P/usr/bin/docker-proxy
-  install -Dm0755 -v runc $P/usr/bin/runc
-  install -Dm0755 -v dockerd $P/usr/bin/dockerd
 
   # udev
   install -Dm0644 -v $W/80-docker.rules \

@@ -1,0 +1,1 @@
+このパッケージはdocker起動には不要。dockerパッケージ内でcontainerdもインストールされる
