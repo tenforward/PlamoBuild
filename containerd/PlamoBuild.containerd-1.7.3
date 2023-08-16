@@ -1,18 +1,19 @@
 #!/bin/sh
 ##############################################################
 pkgbase="containerd"
-vers="1.2.7"
-url="https://github.com/containerd/containerd/archive/v1.2.7.tar.gz"
-_commitid="85f6aa58b8a3170aec9824568f7a31832878b603"
+vers="1.7.3"
+url="https://github.com/containerd/containerd/archive/refs/tags/v${vers}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
 build=B1
-src="containerd-1.2.7"
+src="containerd-${vers}"
 OPT_CONFIG="--disable-static --enable-shared"
-DOCS="LICENSE README.md RELEASES.md install.go install_opts.go releases"
+DOCS="LICENSE README.md RELEASES.md docs install.go install_opts.go releases"
 patchfiles=""
-compress=txz
+# specifies files that are not in source archive and patchfiles
+addfiles=""
+compress=tzst
 ##############################################################
 
 source /usr/share/plamobuild_functions.sh
@@ -42,19 +43,32 @@ if [ $opt_download -eq 1 ] ; then
 fi
 
 if [ $opt_config -eq 1 ] ; then
+
+    for f in $addfiles $patchfiles
+    do
+        if [ ! -f $f ]; then
+            echo "Required file ($f) is missing."
+            exit 255
+        fi
+    done
+
 ######################################################################
-#  out of tree build. patch apply in src dir
+#  source copy build. patch apply in build dir
 ######################################################################
-    if [ -d $B ] ; then rm -rf $B ; fi
-    mkdir -p $B/src/github.com/containerd
+    if [ -d $B ] ; then rm -rf $B ; fi ;  cp -a $S $B  
     cd $B
-    ln -rTsf $S $B/src/github.com/containerd/containerd
+    for patch in $patchfiles ; do
+       patch -p1 < $W/$patch
+    done
 fi
 
 if [ $opt_build -eq 1 ] ; then
-    export GOPATH=$B
-    cd $B/src/github.com/containerd/containerd
-    make VERSION=v${vers}.m REVISION=${_commitid}.m
+    cd $B 
+    mkdir -p $B/go
+    export GOPATH=$B/go
+    export GOFLAGS="-trimpath -mod=readonly -modcacherw"
+    make VERSION=v$vers REVISION="" GO_BUILD_FLAGS="-trimpath -mod=readonly -modcacherw" GO_GCFLAGS="" EXTRA_LDFLAGS="-buildid="
+    make VERSION=v$vers REVISION="" man
     if [ $? != 0 ]; then
         echo "build error. $0 script stop"
         exit 255
@@ -64,13 +78,14 @@ fi
 if [ $opt_package -eq 1 ] ; then
   check_root
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
-  cd $B/src/github.com/containerd/containerd
-
-  make install DESTDIR=$P/usr
-
-  ln -sfv containerd $P/usr/bin/docker-containerd
-  ln -sfv containerd-shim $P/usr/bin/docker-containerd-shim
-  ln -sfv ctr $P/usr/bin/docker-containerd-ctr
+  cd $B
+  make PREFIX=/usr DESTDIR=$P/ install
+  install -Dm755 -v $W/containerd.init $P/etc/rc.d/init.d/containerd
+  install -Dm644 -v $W/containerd.init $P/usr/share/doc/containerd-${vers}/containerd.init
+  install -Dm644 -v $W/containerd.logrotate $P/etc/logrotate.d/containerd
+  install -Dm644 -v $W/containerd.logrotate $P/usr/share/doc/containerd-${vers}/containerd.logrotate
+  install -Dm644 -v man/*.8 -t $P/usr/share/man/man8
+  install -Dm644 -v man/*.5 -t $P/usr/share/man/man5
 
 ################################
 #      install tweaks
