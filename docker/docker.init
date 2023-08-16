@@ -40,7 +40,7 @@ docker_start() {
   fi
 
   nohup "${UNSHARE}" -m -- ${DOCKER} -p ${DOCKER_PIDFILE} ${DOCKER_OPTS} >> ${DOCKER_LOG} 2>&1 &
-  pidof $DOCKER
+  pidof $DOCKER > /dev/null 2>&1
   evaluate_retval
 }
 
@@ -63,14 +63,6 @@ docker_restart() {
   docker_start
 }
 
-docker_status() {
-  if [ -f ${DOCKER_PIDFILE} ] && ps -o cmd $(cat ${DOCKER_PIDFILE}) | grep -q ${BASE} ; then
-    echo "Status of ${BASE}: running"
-  else
-    echo "Status of ${BASE}: stopped"
-  fi
-}
-
 case "$1" in
   'start')
     docker_start
@@ -82,7 +74,7 @@ case "$1" in
     docker_restart
     ;;
   'status')
-    docker_status
+    statusproc -p $DOCKER_PIDFILE $DOCKER
     ;;
   *)
     echo "Usage: $0 {start|stop|restart|status}"
