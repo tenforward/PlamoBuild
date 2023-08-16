@@ -13,7 +13,7 @@ BASE=dockerd
 
 UNSHARE=/usr/bin/unshare
 DOCKER=/usr/bin/${BASE}
-DOCKER_PIDFILE=/var/run/${BASE}.pid
+DOCKER_PIDFILE=/run/${BASE}.pid
 DOCKER_LOG=/var/log/docker.log
 DOCKER_OPTS=""
 XDG_RUNTIME_DIR=""
@@ -40,6 +40,7 @@ docker_start() {
   fi
 
   nohup "${UNSHARE}" -m -- ${DOCKER} -p ${DOCKER_PIDFILE} ${DOCKER_OPTS} >> ${DOCKER_LOG} 2>&1 &
+  pidof $DOCKER
   evaluate_retval
 }
 
