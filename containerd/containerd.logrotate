@@ -1,4 +1,4 @@
-/var/log/libvirt/libvirtd.log {
+/var/log/containerd.log {
         weekly
         missingok
         rotate 4
