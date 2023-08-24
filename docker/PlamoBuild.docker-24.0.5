@@ -6,7 +6,7 @@ url="https://download.docker.com/linux/static/stable/x86_64/docker-${vers}.tgz"
 verify=""
 digest=""
 arch=`uname -m`
-build=B1
+build=B2
 src="docker"
 OPT_CONFIG=""
 DOCS=""
@@ -64,6 +64,7 @@ if [ $opt_package -eq 1 ] ; then
   install -Dm0755 -v containerd $P/usr/bin/containerd
   install -Dm0755 -v ctr $P/usr/bin/ctr
   install -Dm0755 -v containerd-shim $P/usr/bin/containerd-shim
+  install -Dm0755 -v containerd-shim-runc-v2 $P/usr/bin/containerd-shim-runc-v2
 
   # udev
   install -Dm0644 -v $W/80-docker.rules \
