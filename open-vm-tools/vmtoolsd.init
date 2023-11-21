@@ -1,0 +1,59 @@
+#!/bin/sh
+########################################################################
+# Begin vmtoolsd
+# Description : start open-vm-tools
+# Notes       :
+########################################################################
+
+pidfile="/run/vmtoolsd.pid"
+command="/usr/bin/vmtoolsd"
+fusecommand="/usr/bin/vmware-vmblock-fuse"
+fusemntpoint="/run/vmblock-fuse"
+
+start() {
+    if [ ! -x $command -o ! -x $fusecommand ]; then
+	echo "$command or vmware-vmblock-fuse is not found."
+	exit 1
+    fi
+}
+
+. /lib/lsb/init-functions
+
+case "${1}" in
+   start)
+       log_info_msg "Mounting vmblock-fuse..."
+       modprobe -v fuse
+       if [ ! -d $fusemntpoint ]; then
+	   mkdir $fusemntpoint
+       fi
+       $fusecommand -o subtype=vmware-vmblock,default_permissions,allow_other $fusemntpoint
+       evaluate_retval
+       log_info_msg "Mounting vmtoolsd..."
+       start_daemon $command &
+       evaluate_retval
+       ;;
+
+   stop)
+       log_info_msg "Stopping vmtoolsd..."
+       killproc $command
+       evaluate_retval
+       log_info_msg "Unmounting vmblock-fuse..."
+       /bin/umount $fusemntpoint
+       evaluate_retval
+       ;;
+
+   restart)
+      ${0} stop
+      sleep 1
+      ${0} start
+      ;;
+
+   *)
+      echo "Usage: ${0} {start|stop|restart}"
+      exit 1
+      ;;
+esac
+
+exit 0
+
+# End scriptname
