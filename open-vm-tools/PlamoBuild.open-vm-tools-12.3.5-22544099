@@ -99,6 +99,18 @@ if [ $opt_package -eq 1 ] ; then
   install -v -Dm755 $W/vmtoolsd.init $P/etc/rc.d/init.d/vmtoolsd
   install -v -Dm644 $W/vmtoolsd.pam $P/etc/pam.d/vmtoolsd.pam
 
+  for i in $(seq 0 6)
+  do
+    install -dm755 -v $P/etc/rc.d/rc"$i".d
+    case $i in
+      0|1|2|6)
+        ln -sfv ../init.d/vmtoolsd $P/etc/rc.d/rc"$i".d/K05vmtoolsd
+	;;
+      3|4|5)
+	ln -sfv ../init.d/vmtoolsd $P/etc/rc.d/rc"$i".d/S99vmtoolsd
+	;;
+    esac
+  done
 
 
 ################################
