@@ -6,7 +6,7 @@ url="https://github.com/trusteddomainproject/OpenDKIM/archive/refs/tags/${vers/_
 verify=""
 digest=""
 arch=`uname -m`
-build=B1
+build=B2
 src="OpenDKIM-${vers/_/-}"
 OPT_CONFIG="--disable-static --enable-shared --with-openldap"
 DOCS="HowToRelease INSTALL LICENSE LICENSE.Sendmail README README.ERLANG RELEASE_NOTES RELEASE_NOTES.Sendmail docs"
@@ -94,7 +94,7 @@ if [ $opt_package -eq 1 ] ; then
   make install DESTDIR=$P
 
   install -dv $P/etc/opendkim/keys
-  install -m 0644 -v $W/opendkim.conf $P/etc/opendkim/opendkim.conf
+  install -m 0644 -v $W/opendkim.conf $P/etc/opendkim/opendkim.conf.dist
 
   install -v -D -m 0644 $W/opendkim.init $P/etc/rc.d/init.d/opendkim
   install -v -D -m 0644 $W/opendkim.init $docdir/$src/opendkim.init
@@ -119,6 +119,8 @@ if [ \$? -ne 0 ]; then
   echo "Add opendkim user/group"
   useradd -r opendkim
 fi
+if [ ! -f /etc/opendkim/opendkim.conf ]; then
+  ( cd /etc/opendkim ; cp opendkim.conf.dist opendkim.conf )
 EOF
 
 ################################
