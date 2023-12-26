@@ -28,7 +28,8 @@ CONF_FILE="/etc/opendkim/opendkim.conf"
 case "$1" in
    start)
       log_info_msg "Starting opendkim..."
-      start_daemon /usr/sbin/opendkim $CONF_FILE
+      mkdir -p /run/opendkim
+      start_daemon /usr/sbin/opendkim -x $CONF_FILE
       evaluate_retval
       ;;
 
