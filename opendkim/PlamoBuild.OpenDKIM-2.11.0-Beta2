@@ -121,6 +121,7 @@ if [ \$? -ne 0 ]; then
 fi
 if [ ! -f /etc/opendkim/opendkim.conf ]; then
   ( cd /etc/opendkim ; cp opendkim.conf.dist opendkim.conf )
+fi
 EOF
 
 ################################
