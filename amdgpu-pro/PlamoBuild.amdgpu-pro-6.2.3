@@ -1,0 +1,135 @@
+#!/bin/sh
+##############################################################
+pkgbase="amdgpu_pro"
+vers="6.2.3"
+major="24.20"
+major_short="24.20"
+minor="2044449"
+ubuntu_ver="24.04"
+
+urls=("https://raw.githubusercontent.com/Ashark/archlinux-amdgpu-pro/master/progl"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/a/amf-amdgpu-pro/amf-amdgpu-pro_1.4.35-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/liba/libamdenc-amdgpu-pro/libamdenc-amdgpu-pro_1.0-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libegl1-amdgpu-pro-oglp_${major_short}-${minor}.${ubuntu_ver}_i386.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libegl1-amdgpu-pro-oglp_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-dri_${major_short}-${minor}.${ubuntu_ver}_i386.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-dri_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-ext_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-gbm_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-glx_${major_short}-${minor}.${ubuntu_ver}_i386.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgl1-amdgpu-pro-oglp-glx_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles1-amdgpu-pro-oglp_${major_short}-${minor}.${ubuntu_ver}_i386.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles1-amdgpu-pro-oglp_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles2-amdgpu-pro-oglp_${major_short}-${minor}.${ubuntu_ver}_i386.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/o/oglp-amdgpu-pro/libgles2-amdgpu-pro-oglp_${major_short}-${minor}.${ubuntu_ver}_amd64.deb"
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/v/vulkan-amdgpu-pro/vulkan-amdgpu-pro_${major_short}-${minor}.${ubuntu_ver}_i386.deb"n
+      "https://repo.radeon.com/amdgpu/${vers}/ubuntu/pool/proprietary/v/vulkan-amdgpu-pro/vulkan-amdgpu-pro_${major_short}-${minor}.${ubuntu_ver}_amd64.deb")
+verify=""
+digest=""
+arch=$(uname -m)
+build=B1
+src="amdgpu-pro-$vers"
+OPT_CONFIG="--disable-static --enable-shared"
+DOCS=""
+patchfiles=""
+# specifies files that are not in source archive and patchfiles
+addfiles=""
+compress=tzst
+##############################################################
+
+if [ ! -d $src ]; then
+    mkdir $src
+fi
+
+source /usr/share/plamobuild_functions.sh
+
+# このスクリプトで使う1文字変数の意味
+#
+# $W : このスクリプトを動かすカレントディレクトリ
+# $S : ソースコードのあるディレクトリ(デフォルト: $W/${src})
+# $B : ビルド用ディレクトリ(デフォルト: /tmp/build)
+# $P : ビルドしたファイルをインストールするディレクトリ（デフォルト: $W/work)
+
+if [ $# -eq 0 ] ; then
+  opt_download=0 ; opt_config=1 ; opt_build=1 ; opt_package=1
+else
+  opt_download=0 ; opt_config=0 ; opt_build=0 ; opt_package=0
+  for i in $@ ; do
+    case $i in
+    download) opt_download=1 ;;
+    config) opt_config=1 ;;
+    build) opt_build=1 ;;
+    package) opt_package=1 ;;
+    esac
+  done
+fi
+if [ $opt_download -eq 1 ] ; then
+    cd $src
+    for url in ${urls[@]}
+    do
+	download_sources
+    done
+fi
+
+if [ $opt_config -eq 1 ] ; then
+    cd $src
+    sed -i -E "s/#\s+export LIBGL_DRIVERS_PATH/    export LIBGL_DRIVERS_PATH/" progl
+fi
+
+if [ $opt_build -eq 1 ] ; then
+    echo "There is nothing to build."
+fi
+
+if [ $opt_package -eq 1 ] ; then
+  check_root
+  if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
+  cd $src
+  for deb in $(ls *.deb)
+  do
+      ar x --output="$B" $deb
+      tar xvf $B/data.tar.xz -C $P
+      rm -f $B/*
+  done
+
+  find $P -type d -name i386-linux-gnu -delete
+
+  mv -v "$P"/opt/amdgpu-pro/lib/x86_64-linux-gnu/ "$P"/usr/lib/amdgpu-pro/
+  mv -v "$P"/opt/amdgpu/lib/x86_64-linux-gnu/dri "$P"/usr/lib/
+
+  mv -v "$P"/opt/amdgpu-pro/lib/xorg/ "$P"/usr/lib/xorg/
+  mv -v "$P"/opt/amdgpu/share/drirc.d "$P"/usr/share/drirc.d
+
+  install -Dm755 -v "$W"/"$src"/progl "$P"/usr/bin/progl
+
+  mkdir -pv "$P"/usr/share/vulkan/icd.d/
+  mv -v "$P"/opt/amdgpu-pro/etc/vulkan/icd.d/amd_icd64.json "$P"/usr/share/vulkan/icd.d/amd_pro_icd64.json
+  mv -v "$P"/usr/lib/amdgpu-pro/amdvlk64.so "$P"/usr/lib/amdvlkpro64.so
+  sed -i "s#/opt/amdgpu-pro/lib/x86_64-linux-gnu/amdvlk64.so#/usr/lib/amdvlkpro64.so#" "$P"/usr/share/vulkan/icd.d/amd_pro_icd64.json
+
+  rm -rfv $P/opt
+  rm -rfv $P/usr/share/doc
+  rm -rfv $P/usr/lib/x86_64-linux-gnu/dri/
+  rm -rfv $P/usr/lib/i386-linux-gnu/dri/
+  find $P -type d -empty -delete
+
+################################
+#      install tweaks
+#  strip binaries, delete locale except ja, compress man,
+#  install docs and patches, compress them and  chown root.root
+################################
+  install_tweak
+  mv -v $P/usr/share/doc/$src $P/usr/share/doc/"$pkgbase"-"$vers"
+
+#############################
+#   convert symlink to null file and
+#   add "ln -sf" command into install/doinst.sh
+################################
+  convert_links
+
+  cd $P
+  /sbin/makepkg ../$pkg.$compress <<EOF
+y
+1
+EOF
+
+fi
