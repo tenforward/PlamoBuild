@@ -1,14 +1,14 @@
 #!/bin/sh
 ##############################################################
 pkgbase="rclone"
-vers="v1.69.1"
-url="https://github.com/rclone/rclone/releases/download/v1.69.1/rclone-v1.69.1.tar.gz"
+vers="1.69.1"
+url="https://github.com/rclone/rclone/releases/download/v${vers}/rclone-v${vers}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
 build=B1
-src="rclone-v1.69.1"
-OPT_CONFIG="--disable-static --enable-shared"
+src="rclone-v${vers}"
+OPT_CONFIG=""
 DOCS="COPYING Dockerfile MAINTAINERS.md MANUAL.txt README.md RELEASE.md docs notes.txt"
 patchfiles=""
 # specifies files that are not in source archive and patchfiles
@@ -60,23 +60,11 @@ if [ $opt_config -eq 1 ] ; then
     for patch in $patchfiles ; do
        patch -p1 < $W/$patch
     done
-    # if [ -f autogen.sh ] ; then
-    #   sh ./autogen.sh
-    # fi
-
-    export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
-    export LDFLAGS='-Wl,--as-needed' 
-    ./configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir=/usr/share/man ${OPT_CONFIG}
-    if [ $? != 0 ]; then
-        echo "configure error. $0 script stop"
-        exit 255
-    fi
 fi
 
 if [ $opt_build -eq 1 ] ; then
-    cd $B 
-    export LDFLAGS='-Wl,--as-needed'
-    make -j3
+    cd $B
+    go build -v -trimpath -buildmode=pie .
     if [ $? != 0 ]; then
         echo "build error. $0 script stop"
         exit 255
@@ -87,9 +75,9 @@ if [ $opt_package -eq 1 ] ; then
   check_root
   if [ -d $P ] ; then rm -rf $P ; fi ; mkdir -p $P
   cd $B
-
-  export LDFLAGS='-Wl,--as-needed'
-  make install DESTDIR=$P
+  install -Dm755 -v rclone $P/usr/bin/rclone
+  ln -sf /usr/bin/rclone $P/usr/bin/mount.rclone
+  ln -sf /usr/bin/rclone $P/usr/bin/rclonefs
 
 ################################
 #      install tweaks
