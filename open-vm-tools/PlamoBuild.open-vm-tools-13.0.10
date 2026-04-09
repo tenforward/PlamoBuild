@@ -1,17 +1,17 @@
 #!/bin/sh
 ##############################################################
 pkgbase="open_vm_tools"
-vers="12.3.5"
-rev="22544099"
+vers="13.0.10"
+rev="25056151"
 url="https://github.com/vmware/open-vm-tools/releases/download/stable-${vers}/open-vm-tools-${vers}-${rev}.tar.gz"
 verify=""
 digest=""
 arch=`uname -m`
-build=B2
+build=B1
 src="open-vm-tools-${vers}-${rev}"
-OPT_CONFIG="--disable-static --enable-shared --without-xmlsec1 --without-kernel-modules"
+OPT_CONFIG="--disable-static --enable-shared --without-xmlsec1 --without-kernel-modules --disable-vgauth"
 DOCS="AUTHORS COPYING ChangeLog INSTALL LICENSE NEWS README docs"
-patchfiles="CVE-2025-22247-1230-1250-VGAuth-updates.patch"
+patchfiles="glib_stub_c.patch"
 # specifies files that are not in source archive and patchfiles
 addfiles="vmtoolsd.init vmtoolsd.pam"
 compress=tzst
@@ -61,7 +61,7 @@ if [ $opt_config -eq 1 ] ; then
     cd $S
     for patch in $patchfiles ; do
         if [ ! -f .${patch} ]; then
-            patch -p2 < $W/$patch
+            patch -p1 < $W/$patch
             touch .${patch}
         fi
     done
@@ -70,7 +70,8 @@ if [ $opt_config -eq 1 ] ; then
     # fi
     cd $B
     export PKG_CONFIG_PATH=/usr/${libdir}/pkgconfig:/usr/share/pkgconfig
-    export LDFLAGS='-Wl,--as-needed' 
+    export LDFLAGS='-Wl,--as-needed'
+    export CFLAGS="$CFLAGS -Wno-error=discarded-qualifiers"
     $S/configure --prefix=/usr --libdir=/usr/${libdir} --sysconfdir=/etc --localstatedir=/var --mandir=/usr/share/man ${OPT_CONFIG}
     if [ $? != 0 ]; then
         echo "configure error. $0 script stop"
@@ -79,7 +80,8 @@ if [ $opt_config -eq 1 ] ; then
 fi
 
 if [ $opt_build -eq 1 ] ; then
-    cd $B 
+    cd $B
+    export CFLAGS="$CFLAGS -Wno-error=discarded-qualifiers"
     export LDFLAGS='-Wl,--as-needed'
     make -j3
     if [ $? != 0 ]; then
