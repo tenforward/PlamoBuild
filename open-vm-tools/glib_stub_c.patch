@@ -1,0 +1,13 @@
+diff -ur open-vm-tools-13.0.10-25056151.orig/lib/rpcChannel/glib_stubs.c open-vm-tools-13.0.10-25056151/lib/rpcChannel/glib_stubs.c
+--- open-vm-tools-13.0.10-25056151.orig/lib/rpcChannel/glib_stubs.c	2025-11-15 10:25:58.000000000 +0900
++++ open-vm-tools-13.0.10-25056151/lib/rpcChannel/glib_stubs.c	2026-04-10 01:33:13.938896375 +0900
+@@ -35,7 +35,9 @@
+ 
+ void *g_malloc0(size_t s) { return Util_SafeCalloc(1, s); }
+ void *g_malloc0_n(size_t n, size_t s) { return Util_SafeCalloc(n, s); }
++#ifndef g_free
+ void g_free(void *p) { free(p); }
++#endif
+ 
+ void g_mutex_init(GMutex *mutex) { }
+ void g_mutex_clear(GMutex *mutex) { }
